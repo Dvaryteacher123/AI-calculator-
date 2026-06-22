@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="sw" id="htmlElement">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SD GAMES</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES - THEMES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --bg-card: rgba(255,255,255,0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #aaaacc;
+            --text-muted: #666688;
+            --border-color: rgba(255,255,255,0.08);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --gradient-1: #ff6b35;
+            --gradient-2: #f7931e;
+            --gradient-3: #ff006e;
+            --accent: #ff6b35;
+            --accent-glow: rgba(255,107,53,0.3);
+            --card-hover: rgba(255,107,53,0.05);
+            --glass-bg: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.06);
+            --nav-bg: rgba(10,10,26,0.95);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --bg-card: rgba(255,255,255,0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #aaaacc;
+            --text-muted: #666688;
+            --border-color: rgba(255,255,255,0.08);
+            --glass-bg: rgba(255,255,255,0.03);
+            --nav-bg: rgba(10,10,26,0.95);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #f0f2f8;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0,0,0,0.03);
+            --text-primary: #1a1a2e;
+            --text-secondary: #444466;
+            --text-muted: #8888aa;
+            --border-color: rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.8);
+            --nav-bg: rgba(240,242,248,0.95);
+            --shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* ============================================
+           ANIMATED BACKGROUND
+           ============================================ */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .bg-animation .layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Bumblebee Animation (Login) */
+        .bumblebee-bg {
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(255,107,53,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(255,0,110,0.1) 0%, transparent 50%);
+            animation: beePulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes beePulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        /* Game Characters Animation */
+        .game-characters {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.04;
+        }
+        
+        .game-characters span {
+            position: absolute;
+            font-size: 60px;
+            animation: floatChar 20s infinite linear;
+        }
+        
+        @keyframes floatChar {
+            0% { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(720deg) scale(1.5); opacity: 0; }
+        }
+        
+        /* Sun Background */
+        .sun-bg {
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,107,53,0.08), transparent 70%);
+            border-radius: 50%;
+            animation: sunPulse 8s ease-in-out infinite;
+        }
+        
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        /* ============================================
+           LOGIN SCREEN
+           ============================================ */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 45px 40px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .login-container::before {
+            content: '🎮';
+            position: absolute;
+            top: -50px;
+            right: -30px;
+            font-size: 120px;
+            opacity: 0.03;
+        }
+        
+        .login-container .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-container .logo .icon {
+            font-size: 60px;
+            display: block;
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+        
+        .login-container .logo h1 {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+        
+        .login-container .logo p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+        
+        .login-container .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .login-container .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .login-container .tab-btn.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+        
+        .login-container .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .login-container .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-container .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .login-container .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        .login-container .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .login-container .form-group input:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .login-container .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .login-container .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-container .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px var(--accent-glow);
+        }
+        
+        .login-container .btn-google {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+        
+        .login-container .btn-google:hover {
+            border-color: var(--gradient-1);
+            transform: translateY(-2px);
+        }
+        
+        .login-container .btn-google svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .login-container .btn-github {
+            background: #24292e;
+            color: white;
+            border: 2px solid #24292e;
+            margin-top: 8px;
+        }
+        
+        .login-container .btn-github:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px rgba(36,41,46,0.3);
+        }
+        
+        .login-container .btn-ios {
+            background: #000;
+            color: white;
+            border: 2px solid #333;
+            margin-top: 8px;
+        }
+        
+        .login-container .btn-ios:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+        }
+        
+        .login-container .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .login-container .divider::before,
+        .login-container .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-container .divider-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 0 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .login-container .message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .login-container .message.active {
+            display: block;
+        }
+        
+        .login-container .message.error {
+            background: rgba(220,53,69,0.15);
+            border: 1px solid rgba(220,53,69,0.2);
+            color: #ff6b6b;
+        }
+        
+        .login-container .message.success {
+            background: rgba(40,167,69,0.15);
+            border: 1px solid rgba(40,167,69,0.2);
+            color: #51cf66;
+        }
+        
+        .login-container .loading {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .login-container .loading.active {
+            display: block;
+        }
+        
+        .login-container .spinner {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--gradient-1);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ============================================
+           MAIN APP
+           ============================================ */
+        #appContent {
+            display: none;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+        
+        #appContent.visible {
+            display: block;
+        }
+        
+        /* ============================================
+           SIDEBAR
+           ============================================ */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            z-index: 200;
+            transition: all 0.3s ease;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        .sidebar .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .sidebar .profile-section {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar .profile-section .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 10px;
+            color: white;
+        }
+        
+        .sidebar .profile-section .name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .sidebar .profile-section .email {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .sidebar .profile-section .owner {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--gradient-1);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        
+        .sidebar .menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+        
+        .sidebar .menu li {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .sidebar .menu li:hover,
+        .sidebar .menu li.active {
+            background: var(--card-hover);
+            color: var(--gradient-1);
+        }
+        
+        .sidebar .menu li i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar .menu .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 10px 0;
+        }
+        
+        .sidebar .menu .logout-item {
+            color: #ff6b6b;
+        }
+        
+        .sidebar .menu .logout-item:hover {
+            background: rgba(255,107,107,0.1);
+        }
+        
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header .left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header .left .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .header .left .brand {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header .right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header .right .lang-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .header .right .lang-btn:hover {
+            border-color: var(--gradient-1);
+        }
+        
+        .header .right .theme-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .header .right .theme-btn:hover {
+            border-color: var(--gradient-1);
+        }
+        
+        /* ============================================
+           MAIN CONTENT
+           ============================================ */
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* ============================================
+           CATEGORY TABS
+           ============================================ */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .category-tabs button {
+            padding: 10px 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .category-tabs button:hover {
+            border-color: var(--gradient-1);
+            color: var(--text-primary);
+        }
+        
+        .category-tabs button.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        /* ============================================
+           GAME GRID
+           ============================================ */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--gradient-1);
+            box-shadow: 0 10px 40px rgba(255,107,53,0.15);
+        }
+        
+        .game-card .thumb {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--text-muted);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .game-card .thumb .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+        }
+        
+        .game-card .info {
+            padding: 16px;
+        }
+        
+        .game-card .info h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .game-card .info p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .game-card .info .badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+            margin-top: 6px;
+        }
+        
+        /* ============================================
+           ADMIN PANEL
+           ============================================ */
+        .admin-panel {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid var(--gradient-1);
+            border-radius: 16px;
+            background: var(--bg-card);
+        }
+        
+        .admin-panel.visible {
+            display: block;
+        }
+        
+        .admin-panel .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .admin-panel .admin-header h2 {
+            color: var(--gradient-1);
+        }
+        
+        .admin-panel .admin-form input,
+        .admin-panel .admin-form textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-form input:focus,
+        .admin-panel .admin-form textarea:focus {
+            border-color: var(--gradient-1);
+        }
+        
+        .admin-panel .admin-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .admin-panel .admin-form .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-form .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        .admin-panel .admin-form .btn-danger {
+            background: #dc3545;
+        }
+        
+        .admin-panel .admin-form .btn-danger:hover {
+            box-shadow: 0 8px 30px rgba(220,53,69,0.3);
+        }
+        
+        .admin-panel .admin-list {
+            margin-top: 20px;
+        }
+        
+        .admin-panel .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-primary);
+        }
+        
+        .admin-panel .admin-item .content {
+            flex: 1;
+        }
+        
+        .admin-panel .admin-item .content h4 {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .admin-panel .admin-item .content p {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        .admin-panel .admin-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .admin-panel .admin-item .actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-item .actions .edit-btn {
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+        }
+        
+        .admin-panel .admin-item .actions .delete-btn {
+            background: rgba(220,53,69,0.15);
+            color: #dc3545;
+        }
+        
+        .admin-panel .admin-item .actions .delete-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* ============================================
+           REPORT SECTION
+           ============================================ */
+        .report-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            background: var(--bg-card);
+        }
+        
+        .report-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        
+        .report-section textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            min-height: 80px;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .report-section textarea:focus {
+            border-color: var(--gradient-1);
+        }
+        
+        .report-section .btn {
+            margin-top: 10px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .report-section .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        /* ============================================
+           WHATSAPP CHANNEL BANNER
+           ============================================ */
+        .wa-banner {
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 16px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .wa-banner:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(37,211,102,0.3);
+        }
+        
+        .wa-banner i {
+            font-size: 30px;
+            margin-right: 10px;
+        }
+        
+        .wa-banner h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        
+        .wa-banner p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        /* ============================================
+           PS CONTROLLER ANIMATION
+           ============================================ */
+        .ps-animation {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 40px;
+            opacity: 0.05;
+            pointer-events: none;
+            animation: psFloat 6s ease-in-out infinite;
+            z-index: 0;
+        }
+        
+        @keyframes psFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+        
+        .footer .owner {
+            color: var(--gradient-1);
+            font-weight: 600;
+        }
+        
+        .footer .phone {
+            color: var(--text-secondary);
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 15px;
+            }
+            
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+            
+            .sidebar {
+                width: 260px;
+                left: -260px;
+            }
+            
+            .header .left .brand {
+                font-size: 18px;
+            }
+            
+            .category-tabs button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .game-card .thumb {
+                height: 120px;
+                font-size: 40px;
+            }
+            
+            .login-container {
+                padding: 20px 15px;
+            }
+            
+            .login-container .logo h1 {
+                font-size: 28px;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==========================================
+ANIMATED BACKGROUND
+========================================== -->
+<div class="bg-animation">
+    <div class="layer bumblebee-bg"></div>
+    <div class="layer sun-bg"></div>
+    <div class="game-characters" id="gameChars"></div>
+</div>
+
+<!-- ==========================================
+PS CONTROLLER ANIMATION
+========================================== -->
+<div class="ps-animation">🎮</div>
+
+<!-- ==========================================
+LOGIN SCREEN
+========================================== -->
+<div id="loginScreen">
+    <div class="login-container">
+        <div class="logo">
+            <span class="icon">🎮</span>
+            <h1>SD GAMES</h1>
+            <p>Premium Gaming Hub</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">🔑 INGIA</button>
+            <button class="tab-btn" data-tab="signup">📝 JIANDIKISHA</button>
+        </div>
+        
+        <!-- Login -->
+        <div id="loginForm" class="tab-content active">
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>📧 BARUA PEPE</label>
+                    <input type="email" id="loginEmail" placeholder="email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 NENOSIRI</label>
+                    <input type="password" id="loginPassword" placeholder="Nenosiri lako" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">🔑 INGIA</button>
+            </form>
+        </div>
+        
+        <!-- Signup -->
+        <div id="signupForm" class="tab-content">
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label>👤 JINA LAKO</label>
+                    <input type="text" id="signupName" placeholder="Jina lako kamili" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 BARUA PEPE</label>
+                    <input type="email" id="signupEmail" placeholder="email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 NENOSIRI</label>
+                    <input type="password" id="signupPassword" placeholder="Angalau herufi 6" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>✅ THIBITISHA</label>
+                    <input type="password" id="signupConfirm" placeholder="Andika nenosiri tena" required>
+                </div>
+                <button type="submit" class="btn btn-primary">📝 JIANDIKISHA</button>
+            </form>
+        </div>
+        
+        <div class="divider">
+            <span class="divider-text">Au</span>
+        </div>
+        
+        <!-- Social Login Buttons -->
+        <button id="signInBtn" class="btn btn-google">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            INGIA NA GOOGLE
+        </button>
+        
+        <button id="githubSignInBtn" class="btn btn-github">
+            <i class="fab fa-github"></i> INGIA NA GITHUB
+        </button>
+        
+        <button id="iosSignInBtn" class="btn btn-ios">
+            <i class="fab fa-apple"></i> INGIA NA APPLE
+        </button>
+        
+        <div id="loading" class="loading">
+            <span class="spinner"></span> INAPAKIA...
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<!-- ==========================================
+MAIN APP
+========================================== -->
+<div id="appContent">
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">✕</button>
+        
+        <div class="profile-section">
+            <div class="avatar">👤</div>
+            <div class="name" id="profileName">Mtumiaji</div>
+            <div class="email" id="profileEmail">email@example.com</div>
+            <div class="owner">SD™ • +255 617 888 234</div>
+        </div>
+        
+        <ul class="menu">
+            <li class="active" onclick="navigateTo('games')"><i class="fas fa-gamepad"></i> Magemu</li>
+            <li onclick="navigateTo('android')"><i class="fab fa-android"></i> Android</li>
+            <li onclick="navigateTo('pc')"><i class="fas fa-desktop"></i> PC Games</li>
+            <li onclick="navigateTo('console')"><i class="fas fa-tv"></i> Console</li>
+            <li><div class="divider"></div></li>
+            <li onclick="navigateTo('settings')"><i class="fas fa-cog"></i> Mipangilio</li>
+            <li onclick="navigateTo('accessibility')"><i class="fas fa-universal-access"></i> Accessibility</li>
+            <li onclick="navigateTo('admin')"><i class="fas fa-shield-alt"></i> Admin Panel</li>
+            <li><div class="divider"></div></li>
+            <li onclick="navigateTo('report')"><i class="fas fa-flag"></i> Ripoti</li>
+            <li class="logout-item" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Toka</li>
+        </ul>
+    </div>
+    
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="left">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <span class="brand">🎮 SD GAMES</span>
+        </div>
+        <div class="right">
+            <button class="lang-btn" onclick="toggleLanguage()">🌍 SW</button>
+            <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+        </div>
+    </div>
+    
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+        
+        <!-- WhatsApp Channel Banner -->
+        <a href="https://whatsapp.com/channel/0029Vb89i6d2Jl8H7I7SqL0b" target="_blank" class="wa-banner">
+            <i class="fab fa-whatsapp"></i>
+            <h3>📱 Jiunge na SD™ Channel</h3>
+            <p>Pata magemu mengi zaidi hapa! Follow sasa.</p>
+        </a>
+        
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="categoryTabs">
+            <button class="active" data-category="all">🎮 ZOTE</button>
+            <button data-category="android">📱 ANDROID</button>
+            <button data-category="pc">💻 PC</button>
+            <button data-category="console">🕹️ CONSOLE</button>
+            <button data-category="tanzania">🇹🇿 TANZANIA</button>
+        </div>
+        
+        <!-- Game Grid -->
+        <div class="game-grid" id="gameGrid">
+            <!-- Games rendered by JS -->
+        </div>
+        
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-header">
+                <h2>👑 ADMIN PANEL - SD™</h2>
+                <small>Password: Sd5050</small>
+            </div>
+            
+            <div class="admin-form">
+                <input type="text" id="adminTitle" placeholder="Jina la Game...">
+                <input type="text" id="adminCategory" placeholder="Category (android, pc, console, tanzania)...">
+                <input type="text" id="adminImage" placeholder="URL ya Picha (emoji au link)...">
+                <input type="text" id="adminLink" placeholder="Link ya Download...">
+                <textarea id="adminDesc" placeholder="Maelezo mafupi..."></textarea>
+                
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn" onclick="addGame()">📤 ONGEZA GAME</button>
+                    <button class="btn btn-danger" onclick="clearAdminForm()">🗑️ Futa</button>
+                </div>
+            </div>
+            
+            <div class="admin-list" id="adminList">
+                <!-- Admin items rendered by JS -->
+            </div>
+        </div>
+        
+        <!-- Report Section -->
+        <div class="report-section" id="reportSection">
+            <h3>📝 RIPOTI</h3>
+            <textarea id="reportText" placeholder="Andika ripoti yako hapa... (Game inayokosekana, bug, au pendekezo)"></textarea>
+            <button class="btn" onclick="submitReport()">📤 Tuma Ripoti</button>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2026 <span class="owner">SD™</span> • +255 617 888 234</p>
+            <p style="font-size:11px; margin-top:4px;">Follow SD™ on WhatsApp: <a href="https://whatsapp.com/channel/0029Vb89i6d2Jl8H7I7SqL0b" target="_blank" style="color:var(--gradient-1);">Jiunge Sasa</a></p>
+            <p style="font-size:10px; margin-top:4px; color:var(--text-muted);">✨ Powered by SD Games Premium ✨</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIG - SDK YAKO
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDpFyANpjv2dMUvXoMSSmqoT3s1UwJLUkg",
+    authDomain: "dvary-9a7d0.firebaseapp.com",
+    projectId: "dvary-9a7d0",
+    storageBucket: "dvary-9a7d0.firebasestorage.app",
+    messagingSenderId: "107370806066",
+    appId: "1:107370806066:android:e954fb03d99e52ac09f52b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+const githubProvider = new firebase.auth.GithubAuthProvider();
+
+// ============================================
+// GAME CHARACTERS BACKGROUND
+// ============================================
+function initGameChars() {
+    const container = document.getElementById('gameChars');
+    const chars = ['🎮', '👾', '🕹️', '🎯', '🏆', '⚽', '🏀', '🎱', '♟️', '🎲', '🃏', '🎰'];
+    for (let i = 0; i < 20; i++) {
+        const span = document.createElement('span');
+        span.textContent = chars[i % chars.length];
+        span.style.left = Math.random() * 100 + '%';
+        span.style.fontSize = (Math.random() * 40 + 30) + 'px';
+        span.style.animationDuration = (Math.random() * 20 + 15) + 's';
+        span.style.animationDelay = (Math.random() * 20) + 's';
+        container.appendChild(span);
+    }
+}
+initGameChars();
+
+// ============================================
+// GAME DATA (Sample - Stored in Firestore)
+// ============================================
+const defaultGames = [
+    { id: 1, title: 'God of War Ragnarok', category: 'console', image: '⚔️', link: '#', desc: 'Epic adventure game' },
+    { id: 2, title: 'GTA V', category: 'pc', image: '🚗', link: '#', desc: 'Open world crime game' },
+    { id: 3, title: 'FIFA 24', category: 'tanzania', image: '⚽', link: '#', desc: 'Football game' },
+    { id: 4, title: 'Call of Duty', category: 'pc', image: '🔫', link: '#', desc: 'FPS shooter' },
+    { id: 5, title: 'Minecraft', category: 'android', image: '⛏️', link: '#', desc: 'Building game' },
+    { id: 6, title: 'PUBG Mobile', category: 'android', image: '🎯', link: '#', desc: 'Battle royale' },
+];
+
+let games = [];
+let currentCategory = 'all';
+let currentUser = null;
+let currentLang = 'sw';
+let currentTheme = 'dark';
+
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const loginScreen = document.getElementById('loginScreen');
+const appContent = document.getElementById('appContent');
+const sidebar = document.getElementById('sidebar');
+const gameGrid = document.getElementById('gameGrid');
+const adminPanel = document.getElementById('adminPanel');
+
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
+const loginForm = document.getElementById('loginFormElement');
+const signupForm = document.getElementById('signupFormElement');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signupName = document.getElementById('signupName');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirm = document.getElementById('signupConfirm');
+const signInBtn = document.getElementById('signInBtn');
+const githubSignInBtn = document.getElementById('githubSignInBtn');
+const iosSignInBtn = document.getElementById('iosSignInBtn');
+const loading = document.getElementById('loading');
+const message = document.getElementById('message');
+const tabBtns = document.querySelectorAll('.tab-btn');
+
+function showLoading() { loading.classList.add('active'); }
+function hideLoading() { loading.classList.remove('active'); }
+
+function showMessage(text, type = 'info') {
+    message.textContent = text;
+    message.className = 'message active ' + type;
+    setTimeout(() => {
+        message.classList.remove('active');
+    }, 5000);
+}
+
+function clearForms() {
+    loginEmail.value = '';
+    loginPassword.value = '';
+    signupName.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+    signupConfirm.value = '';
+}
+
+// Tabs
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab + 'Form').classList.add('active');
+        message.classList.remove('active');
+    });
+});
+
+// Signup
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+    const confirm = signupConfirm.value;
+    
+    if (!name || !email || !password || !confirm) {
+        showMessage('Tafadhali jaza sehemu zote', 'error');
+        return;
+    }
+    if (password !== confirm) {
+        showMessage('Nenosiri hazifanani!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showMessage('Nenosiri lazima liwe na angalau herufi 6', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: name });
+        hideLoading();
+        showMessage('✅ Akaunti imeundwa! Karibu!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Kosa: ';
+        switch (error.code) {
+            case 'auth/email-already-in-use': msg += 'Barua pepe hii tayari inatumika.'; break;
+            case 'auth/invalid-email': msg += 'Barua pepe si sahihi.'; break;
+            case 'auth/weak-password': msg += 'Nenosiri ni dhaifu.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+// Login
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    
+    if (!email || !password) {
+        showMessage('Tafadhali jaza barua pepe na nenosiri', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        hideLoading();
+        showMessage('✅ Umefanikiwa kuingia!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Kosa: ';
+        switch (error.code) {
+            case 'auth/user-not-found': msg += 'Akaunti haipatikani. Jiandikisha kwanza.'; break;
+            case 'auth/wrong-password': msg += 'Nenosiri si sahihi.'; break;
+            case 'auth/invalid-email': msg += 'Barua pepe si sahihi.'; break;
+            case 'auth/too-many-requests': msg += 'Majaribio mengi sana. Jaribu tena baadaye.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+// Google Sign In
+signInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        await auth.signInWithPopup(googleProvider);
+        hideLoading();
+        showMessage('✅ Umefanikiwa kuingia na Google!', 'success');
+    } catch (error) {
+        hideLoading();
+        if (error.code === 'auth/popup-blocked') {
+            showMessage('⚠️ Ruhusu popups kwenye browser yako.', 'error');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showMessage('Umeghairi kuingia.', 'info');
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+            showMessage('Kosa: ' + error.message, 'error');
+        }
+    }
+});
+
+// GitHub Sign In
+githubSignInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        await auth.signInWithPopup(githubProvider);
+        hideLoading();
+        showMessage('✅ Umefanikiwa kuingia na GitHub!', 'success');
+    } catch (error) {
+        hideLoading();
+        showMessage('Kosa: ' + error.message, 'error');
+    }
+});
+
+// iOS Sign In (Apple)
+iosSignInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        const provider = new firebase.auth.OAuthProvider('apple.com');
+        await auth.signInWithPopup(provider);
+        hideLoading();
+        showMessage('✅ Umefanikiwa kuingia na Apple!', 'success');
+    } catch (error) {
+        hideLoading();
+        showMessage('Kosa: ' + error.message, 'error');
+    }
+});
+
+// Logout
+function handleLogout() {
+    auth.signOut().then(() => {
+        appContent.classList.remove('visible');
+        loginScreen.style.display = 'flex';
+        sidebar.classList.remove('open');
+    }).catch((error) => {
+        console.error('Logout error:', error);
+    });
+}
+
+// ============================================
+// SIDEBAR
+// ============================================
+function toggleSidebar() {
+    sidebar.classList.toggle('open');
+}
+
+// Close sidebar on outside click
+document.addEventListener('click', function(e) {
+    if (sidebar.classList.contains('open')) {
+        if (!sidebar.contains(e.target) && !e.target.closest('.menu-btn')) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
+
+// ============================================
+// NAVIGATION
+// ============================================
+function navigateTo(section) {
+    sidebar.classList.remove('open');
+    
+    // Update menu active state
+    document.querySelectorAll('.sidebar .menu li').forEach(li => li.classList.remove('active'));
+    const items = document.querySelectorAll('.sidebar .menu li');
+    const index = ['games', 'android', 'pc', 'console', 'settings', 'accessibility', 'admin', 'report'].indexOf(section);
+    if (index >= 0 && items[index]) {
+        items[index].classList.add('active');
+    }
+    
+    // Handle sections
+    if (section === 'admin') {
+        adminPanel.classList.toggle('visible');
+        if (adminPanel.classList.contains('visible')) {
+            loadAdminItems();
+        }
+    } else if (section === 'report') {
+        document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
+    } else if (section === 'settings') {
+        // Settings section - scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (section === 'accessibility') {
+        // Accessibility section - scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (section === 'games' || section === 'android' || section === 'pc' || section === 'console') {
+        // Filter games
+        const categoryMap = { games: 'all', android: 'android', pc: 'pc', console: 'console' };
+        currentCategory = categoryMap[section] || 'all';
+        renderGames();
+        
+        // Update category tabs
+        document.querySelectorAll('.category-tabs button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === currentCategory);
+        });
+    }
+}
+
+// ============================================
+// THEME & LANGUAGE
+// ============================================
+function toggleTheme() {
+    const html = document.getElementById('htmlElement');
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('sd-theme', currentTheme);
+}
+
+function toggleLanguage() {
+    currentLang = currentLang === 'sw' ? 'en' : 'sw';
+    document.querySelector('.lang-btn').textContent = currentLang === 'sw' ? '🌍 SW' : '🌍 EN';
+    localStorage.setItem('sd-lang', currentLang);
+    renderGames();
+}
+
+// Load saved preferences
+const savedTheme = localStorage.getItem('sd-theme') || 'dark';
+const savedLang = localStorage.getItem('sd-lang') || 'sw';
+document.getElementById('htmlElement').setAttribute('data-theme', savedTheme);
+currentTheme = savedTheme;
+currentLang = savedLang;
+document.querySelector('.lang-btn').textContent = currentLang === 'sw' ? '🌍 SW' : '🌍 EN';
+
+// ============================================
+// GAME FUNCTIONS
+// ============================================
+function renderGames() {
+    const filtered = games.filter(game => {
+        if (currentCategory === 'all') return true;
+        return game.category === currentCategory;
+    });
+    
+    if (filtered.length === 0) {
+        gameGrid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-muted);">
+                <i class="fas fa-gamepad" style="font-size:40px; display:block; margin-bottom:15px; opacity:0.3;"></i>
+                <p>${currentLang === 'sw' ? 'Hakuna magemu katika category hii' : 'No games in this category'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    gameGrid.innerHTML = filtered.map(game => `
+        <div class="game-card" onclick="openGame('${game.link || '#'}')">
+            <div class="thumb">
+                ${game.image && game.image.startsWith('http') ? 
+                    `<img src="${game.image}" alt="${game.title}">` : 
+                    `<span style="font-size:60px;">${game.image || '🎮'}</span>`
+                }
+                <div class="overlay">
+                    <span style="font-size:12px; color:rgba(255,255,255,0.6);">
+                        ${game.category ? game.category.toUpperCase() : ''}
+                    </span>
+                </div>
+            </div>
+            <div class="info">
+                <h3>${game.title}</h3>
+                <p>${game.desc || ''}</p>
+                <span class="badge">${currentLang === 'sw' ? 'Pakua Sasa' : 'Download Now'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openGame(link) {
+    if (link && link !== '#') {
+        window.open(link, '_blank');
+    } else {
+        alert(currentLang === 'sw' ? 'Link ya download haijapatikana' : 'Download link not available');
+    }
+}
+
+// ============================================
+// CATEGORY TABS
+// ============================================
+document.querySelectorAll('.category-tabs button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.category-tabs button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentCategory = this.dataset.category;
+        renderGames();
+    });
+});
+
+// ============================================
+// ADMIN FUNCTIONS
+// ============================================
+let adminPassword = 'Sd5050';
+let adminItems = [];
+
+function checkAdmin() {
+    const pwd = prompt('🔐 Weka Password ya Admin:');
+    if (pwd === adminPassword) {
+        adminPanel.classList.toggle('visible');
+        if (adminPanel.classList.contains('visible')) {
+            loadAdminItems();
+        }
+    } else if (pwd !== null) {
+        alert('❌ Password si sahihi!');
+    }
+}
+
+function loadAdminItems() {
+    // Load from Firestore or localStorage
+    const saved = localStorage.getItem('sd-admin-items');
+    if (saved) {
+        adminItems = JSON.parse(saved);
+    } else {
+        adminItems = defaultGames.map(g => ({ ...g, id: Date.now() + Math.random() }));
+        localStorage.setItem('sd-admin-items', JSON.stringify(adminItems));
+    }
+    renderAdminList();
+}
+
+function renderAdminList() {
+    const list = document.getElementById('adminList');
+    if (adminItems.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-muted);">${currentLang === 'sw' ? 'Hakuna vitu vimewekwa bado' : 'No items added yet'}</p>`;
+        return;
+    }
+    list.innerHTML = adminItems.map((item, index) => `
+        <div class="admin-item">
+            <div class="content">
+                <h4>${item.title || 'No title'}</h4>
+                <p>${item.desc || ''} • ${item.category || ''}</p>
+            </div>
+            <div class="actions">
+                <button class="delete-btn" onclick="deleteAdminItem(${index})">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addGame() {
+    const title = document.getElementById('adminTitle').value.trim();
+    const category = document.getElementById('adminCategory').value.trim();
+    const image = document.getElementById('adminImage').value.trim();
+    const link = document.getElementById('adminLink').value.trim();
+    const desc = document.getElementById('adminDesc').value.trim();
+    
+    if (!title || !category) {
+        alert(currentLang === 'sw' ? 'Tafadhali jaza Jina na Category' : 'Please fill Title and Category');
+        return;
+    }
+    
+    const newGame = {
+        id: Date.now(),
+        title: title,
+        category: category.toLowerCase(),
+        image: image || '🎮',
+        link: link || '#',
+        desc: desc || 'Game'
+    };
+    
+    adminItems.push(newGame);
+    games.push(newGame);
+    localStorage.setItem('sd-admin-items', JSON.stringify(adminItems));
+    renderAdminList();
+    renderGames();
+    clearAdminForm();
+    alert('✅ Game imeongezwa!');
+}
+
+function deleteAdminItem(index) {
+    if (confirm(currentLang === 'sw' ? 'Je, una uhakika unataka kufuta hii?' : 'Are you sure you want to delete this?')) {
+        const removed = adminItems.splice(index, 1)[0];
+        games = games.filter(g => g.id !== removed.id);
+        localStorage.setItem('sd-admin-items', JSON.stringify(adminItems));
+        renderAdminList();
+        renderGames();
+        alert('🗑️ Imefutika!');
+    }
+}
+
+function clearAdminForm() {
+    document.getElementById('adminTitle').value = '';
+    document.getElementById('adminCategory').value = '';
+    document.getElementById('adminImage').value = '';
+    document.getElementById('adminLink').value = '';
+    document.getElementById('adminDesc').value = '';
+}
+
+// Load admin on init
+setTimeout(() => {
+    loadAdminItems();
+    games = [...adminItems];
+    renderGames();
+}, 500);
+
+// ============================================
+// REPORT FUNCTION
+// ============================================
+function submitReport() {
+    const text = document.getElementById('reportText').value.trim();
+    if (!text) {
+        alert(currentLang === 'sw' ? 'Tafadhali andika ripoti yako' : 'Please write your report');
+        return;
+    }
+    
+    // Save to Firestore or localStorage
+    const reports = JSON.parse(localStorage.getItem('sd-reports') || '[]');
+    reports.push({
+        text: text,
+        date: new Date().toISOString(),
+        user: currentUser ? currentUser.email : 'anonymous'
+    });
+    localStorage.setItem('sd-reports', JSON.stringify(reports));
+    
+    document.getElementById('reportText').value = '';
+    alert('✅ Ripoti imetumwa! Asante kwa maoni yako.');
+}
+
+// ============================================
+// AUTH STATE LISTENER
+// ============================================
+auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    if (user) {
+        console.log('✅ Mtumiaji ameingia:', user.email);
+        loginScreen.style.display = 'none';
+        appContent.classList.add('visible');
+        
+        // Update profile
+        document.getElementById('profileName').textContent = user.displayName || user.email || 'Mtumiaji';
+        document.getElementById('profileEmail').textContent = user.email || 'email@example.com';
+        
+        // Load games
+        loadAdminItems();
+        games = [...adminItems];
+        renderGames();
+    } else {
+        console.log('🔴 Mtumiaji ametoka');
+        loginScreen.style.display = 'flex';
+        appContent.classList.remove('visible');
+        sidebar.classList.remove('open');
+    }
+});
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
+
+console.log('🎮 SD GAMES - Premium Gaming Hub');
+console.log('👑 Admin Password: Sd5050');
+console.log('📱 Follow SD™ on WhatsApp: https://whatsapp.com/channel/0029Vb89i6d2Jl8H7I7SqL0b');
+</script>
+</body>
+                      </html>
