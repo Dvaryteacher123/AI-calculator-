@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlElement">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVARY FOOD DELIVERY</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES - THEMES
+           ============================================ */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --text-muted: #8888aa;
+            --border-color: #e0e0e0;
+            --shadow: 0 10px 40px rgba(0,0,0,0.08);
+            --gradient-1: #ff6b35;
+            --gradient-2: #f7931e;
+            --gradient-3: #ff006e;
+            --accent: #ff6b35;
+            --accent-glow: rgba(255,107,53,0.2);
+            --glass-bg: rgba(255,255,255,0.9);
+            --glass-border: rgba(0,0,0,0.06);
+            --nav-bg: rgba(255,255,255,0.95);
+            --card-hover: rgba(255,107,53,0.04);
+            --input-bg: #f0f2f5;
+            --login-bg: #ffffff;
+        }
+        
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --bg-card: rgba(255,255,255,0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #aaaacc;
+            --text-muted: #666688;
+            --border-color: rgba(255,255,255,0.08);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --glass-bg: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.06);
+            --nav-bg: rgba(10,10,26,0.95);
+            --card-hover: rgba(255,107,53,0.05);
+            --input-bg: rgba(255,255,255,0.05);
+            --login-bg: #0a0a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* ============================================
+           LOGIN SCREEN - BACKGROUND NYEUPE
+           ============================================ */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: var(--login-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Login Background Decoration */
+        .login-bg-deco {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .login-bg-deco .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(255,0,110,0.03));
+            animation: floatCircle 20s infinite linear;
+        }
+        
+        @keyframes floatCircle {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 50px) scale(0.95); }
+            75% { transform: translate(30px, -20px) scale(1.02); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        
+        .login-bg-deco .food-floating {
+            position: absolute;
+            font-size: 30px;
+            opacity: 0.06;
+            animation: floatFood 15s infinite linear;
+        }
+        
+        @keyframes floatFood {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.06; }
+            90% { opacity: 0.06; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Glowing Border Animation */
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 2px solid transparent;
+            border-radius: 30px;
+            padding: 45px 40px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            animation: glowBorder 3s ease-in-out infinite;
+        }
+        
+        @keyframes glowBorder {
+            0%, 100% { border-color: rgba(255,107,53,0.1); box-shadow: 0 0 30px rgba(255,107,53,0.05); }
+            50% { border-color: rgba(255,107,53,0.3); box-shadow: 0 0 60px rgba(255,107,53,0.1); }
+        }
+        
+        /* Eating Character */
+        .eating-character {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .eating-character .char {
+            font-size: 70px;
+            display: inline-block;
+            animation: eatAnim 2s ease-in-out infinite;
+        }
+        
+        .eating-character .food-emoji {
+            display: inline-block;
+            font-size: 40px;
+            animation: foodBounce 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes eatAnim {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-5px) rotate(-3deg); }
+            75% { transform: translateY(-5px) rotate(3deg); }
+        }
+        
+        @keyframes foodBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+        }
+        
+        .login-container .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-container .logo h1 {
+            font-size: 34px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+        
+        .login-container .logo p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+        
+        .login-container .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: var(--input-bg);
+            border-radius: 16px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .login-container .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .login-container .tab-btn.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+        
+        .login-container .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .login-container .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-container .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .login-container .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        .login-container .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .login-container .form-group input:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .login-container .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .login-container .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-container .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px var(--accent-glow);
+        }
+        
+        .login-container .btn-google {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+        
+        .login-container .btn-google:hover {
+            border-color: var(--gradient-1);
+            transform: translateY(-2px);
+        }
+        
+        .login-container .btn-google svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .login-container .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .login-container .divider::before,
+        .login-container .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-container .divider-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 0 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .login-container .message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .login-container .message.active {
+            display: block;
+        }
+        
+        .login-container .message.error {
+            background: rgba(220,53,69,0.1);
+            border: 1px solid rgba(220,53,69,0.15);
+            color: #dc3545;
+        }
+        
+        .login-container .message.success {
+            background: rgba(40,167,69,0.1);
+            border: 1px solid rgba(40,167,69,0.15);
+            color: #28a745;
+        }
+        
+        .login-container .loading {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .login-container .loading.active {
+            display: block;
+        }
+        
+        .login-container .spinner {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--gradient-1);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ============================================
+           MAIN APP
+           ============================================ */
+        #appContent {
+            display: none;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+        
+        #appContent.visible {
+            display: block;
+        }
+        
+        /* ============================================
+           NAVBAR
+           ============================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .navbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar .brand .logo-text {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .navbar .brand .logo-text i {
+            margin-right: 8px;
+        }
+        
+        .navbar .search-box {
+            flex: 1;
+            max-width: 400px;
+            min-width: 150px;
+            position: relative;
+        }
+        
+        .navbar .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .search-box input:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .navbar .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .navbar .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .navbar .right-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .navbar .right-section .nav-icon-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .navbar .right-section .nav-icon-btn:hover {
+            border-color: var(--gradient-1);
+            color: var(--gradient-1);
+        }
+        
+        .navbar .right-section .nav-icon-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: var(--gradient-1);
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        
+        .navbar .right-section .theme-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .theme-btn:hover {
+            border-color: var(--gradient-1);
+            color: var(--gradient-1);
+        }
+        
+        .navbar .right-section .admin-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        .navbar .right-section .logout-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .logout-btn:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .navbar .right-section .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+        }
+        
+        /* ============================================
+           CATEGORIES
+           ============================================ */
+        .categories {
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+        
+        .categories::-webkit-scrollbar {
+            height: 3px;
+        }
+        
+        .categories::-webkit-scrollbar-thumb {
+            background: var(--gradient-1);
+            border-radius: 10px;
+        }
+        
+        .categories button {
+            padding: 8px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .categories button:hover {
+            border-color: var(--gradient-1);
+            color: var(--text-primary);
+        }
+        
+        .categories button.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        /* ============================================
+           FOOD GRID
+           ============================================ */
+        .food-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .food-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .food-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--gradient-1);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+        
+        .food-card .image {
+            width: 100%;
+            height: 180px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--text-muted);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .food-card .image .price-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.7);
+            color: var(--gradient-1);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .food-card .info {
+            padding: 16px;
+        }
+        
+        .food-card .info h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .food-card .info p {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .food-card .info .category-tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+            margin-top: 6px;
+        }
+        
+        .food-card .order-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .food-card .order-btn:hover {
+            background: var(--gradient-1);
+            color: white;
+        }
+        
+        /* ============================================
+           ADMIN PANEL
+           ============================================ */
+        .admin-panel {
+            display: none;
+            padding: 20px;
+            margin: 20px;
+            border: 2px solid var(--gradient-1);
+            border-radius: 16px;
+            background: var(--bg-card);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .admin-panel.visible {
+            display: block;
+        }
+        
+        .admin-panel .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .admin-panel .admin-header h2 {
+            color: var(--gradient-1);
+            font-size: 22px;
+        }
+        
+        .admin-panel .admin-header .close-admin {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-header .close-admin:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .admin-panel .admin-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .admin-panel .admin-form .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .admin-panel .admin-form input,
+        .admin-panel .admin-form textarea,
+        .admin-panel .admin-form select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-form input:focus,
+        .admin-panel .admin-form textarea:focus,
+        .admin-panel .admin-form select:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .admin-panel .admin-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .admin-panel .admin-form .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .admin-panel .admin-form .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        .admin-panel .admin-form .btn-danger {
+            background: #dc3545;
+        }
+        
+        .admin-panel .admin-form .btn-danger:hover {
+            box-shadow: 0 8px 30px rgba(220,53,69,0.3);
+        }
+        
+        .admin-list {
+            margin-top: 20px;
+        }
+        
+        .admin-list .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-list .admin-item:hover {
+            border-color: var(--gradient-1);
+        }
+        
+        .admin-list .admin-item .item-info {
+            flex: 1;
+        }
+        
+        .admin-list .admin-item .item-info h4 {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .admin-list .admin-item .item-info p {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        .admin-list .admin-item .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .admin-list .admin-item .item-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-list .admin-item .item-actions .edit-btn {
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+        }
+        
+        .admin-list .admin-item .item-actions .edit-btn:hover {
+            background: var(--gradient-1);
+            color: white;
+        }
+        
+        .admin-list .admin-item .item-actions .delete-btn {
+            background: rgba(220,53,69,0.12);
+            color: #dc3545;
+        }
+        
+        .admin-list .admin-item .item-actions .delete-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* ============================================
+           ORDER MODAL
+           ============================================ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        .modal-content .order-icon {
+            font-size: 60px;
+            text-align: center;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .modal-content h2 {
+            text-align: center;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .modal-content .order-price {
+            text-align: center;
+            font-size: 28px;
+            color: var(--gradient-1);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .modal-content .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .modal-content .form-group input,
+        .modal-content .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-content .form-group input:focus,
+        .modal-content .form-group textarea:focus {
+            border-color: var(--gradient-1);
+        }
+        
+        .modal-content .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .modal-content .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-content .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        
+        .footer .owner {
+            color: var(--gradient-1);
+            font-weight: 600;
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 15px;
+            }
+            
+            .login-container .logo h1 {
+                font-size: 28px;
+            }
+            
+            .food-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+                padding: 12px;
+            }
+            
+            .admin-panel .admin-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar .brand .logo-text {
+                font-size: 18px;
+            }
+            
+            .navbar .search-box {
+                order: 3;
+                flex: 1 1 100%;
+                max-width: 100%;
+            }
+            
+            .eating-character .char {
+                font-size: 60px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .food-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .food-card .image {
+                height: 120px;
+                font-size: 40px;
+            }
+            
+            .login-container {
+                padding: 20px 15px;
+            }
+            
+            .eating-character .char {
+                font-size: 50px;
+            }
+            
+            .navbar .right-section .nav-icon-btn {
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+            
+            .navbar .right-section .theme-btn {
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==========================================
+LOGIN BACKGROUND DECORATION
+========================================== -->
+<div class="login-bg-deco">
+    <div class="circle" style="width:300px; height:300px; top:-100px; right:-100px;"></div>
+    <div class="circle" style="width:200px; height:200px; bottom:-50px; left:-50px; animation-delay:5s;"></div>
+    <div class="circle" style="width:150px; height:150px; top:50%; left:10%; animation-delay:10s;"></div>
+    <div class="food-floating" style="left:10%; animation-delay:0s;">🍕</div>
+    <div class="food-floating" style="left:30%; animation-delay:5s;">🍔</div>
+    <div class="food-floating" style="left:50%; animation-delay:10s;">🌮</div>
+    <div class="food-floating" style="left:70%; animation-delay:15s;">🍝</div>
+    <div class="food-floating" style="left:90%; animation-delay:20s;">🍣</div>
+</div>
+
+<!-- ==========================================
+LOGIN SCREEN
+========================================== -->
+<div id="loginScreen">
+    <div class="login-container">
+        <!-- Eating Character -->
+        <div class="eating-character">
+            <span class="char">😋</span>
+            <span class="food-emoji">🍕</span>
+        </div>
+        
+        <div class="logo">
+            <h1>🍕 Food Delivery</h1>
+            <p>Delicious Food • Fast Delivery</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">🔑 Login</button>
+            <button class="tab-btn" data-tab="signup">📝 Sign Up</button>
+        </div>
+        
+        <div id="loginForm" class="tab-content active">
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">🔑 Login</button>
+            </form>
+        </div>
+        
+        <div id="signupForm" class="tab-content">
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label>👤 Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>✅ Confirm Password</label>
+                    <input type="password" id="signupConfirm" placeholder="Confirm password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">📝 Sign Up</button>
+            </form>
+        </div>
+        
+        <div class="divider">
+            <span class="divider-text">Or</span>
+        </div>
+        
+        <button id="signInBtn" class="btn btn-google">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Sign in with Google
+        </button>
+        
+        <div id="loading" class="loading">
+            <span class="spinner"></span> Loading...
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<!-- ==========================================
+MAIN APP
+========================================== -->
+<div id="appContent">
+    
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <div class="brand">
+            <span class="logo-text"><i class="fas fa-utensils"></i>Food Delivery</span>
+        </div>
+        
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search food...">
+        </div>
+        
+        <div class="right-section">
+            <button class="nav-icon-btn" onclick="showSection('home')" title="Home">
+                <i class="fas fa-home"></i>
+            </button>
+            <button class="nav-icon-btn" onclick="showSection('orders')" title="Orders">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="badge">0</span>
+            </button>
+            <button class="nav-icon-btn" onclick="showSection('contact')" title="Contact">
+                <i class="fas fa-headset"></i>
+            </button>
+            <button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="admin-btn" onclick="toggleAdmin()">👑 Admin</button>
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+        </div>
+    </nav>
+    
+    <!-- ===== CATEGORIES ===== -->
+    <div class="categories" id="categories">
+        <button class="active" data-category="all">🍽️ All</button>
+        <button data-category="pizza">🍕 Pizza</button>
+        <button data-category="burger">🍔 Burger</button>
+        <button data-category="pasta">🍝 Pasta</button>
+        <button data-category="sushi">🍣 Sushi</button>
+        <button data-category="taco">🌮 Taco</button>
+        <button data-category="drink">🥤 Drinks</button>
+        <button data-category="dessert">🍰 Dessert</button>
+    </div>
+    
+    <!-- ===== FOOD GRID ===== -->
+    <div class="food-grid" id="foodGrid">
+        <!-- Rendered by JavaScript -->
+    </div>
+    
+    <!-- ===== ADMIN PANEL ===== -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>👑 Admin Panel</h2>
+            <button class="close-admin" onclick="toggleAdmin()">✕ Close</button>
+        </div>
+        
+        <div class="admin-form" id="adminForm">
+            <input type="text" id="foodName" placeholder="Food Name..." class="full-width">
+            <input type="text" id="foodPrice" placeholder="Price (e.g. $12.99)...">
+            <select id="foodCategory">
+                <option value="pizza">🍕 Pizza</option>
+                <option value="burger">🍔 Burger</option>
+                <option value="pasta">🍝 Pasta</option>
+                <option value="sushi">🍣 Sushi</option>
+                <option value="taco">🌮 Taco</option>
+                <option value="drink">🥤 Drinks</option>
+                <option value="dessert">🍰 Dessert</option>
+            </select>
+            <input type="text" id="foodEmoji" placeholder="Emoji (e.g. 🍕)...">
+            <textarea id="foodDesc" placeholder="Description..." class="full-width"></textarea>
+            <input type="hidden" id="editId" value="">
+            <button class="btn full-width" onclick="saveFood()">📤 Add Food</button>
+            <button class="btn btn-danger full-width" onclick="clearAdminForm()">🗑️ Clear Form</button>
+        </div>
+        
+        <div class="admin-list" id="adminList">
+            <!-- Rendered by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- ===== ORDER MODAL ===== -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeOrderModal()">✕</button>
+            <span class="order-icon" id="orderIcon">🍕</span>
+            <h2 id="orderTitle">Food Name</h2>
+            <div class="order-price" id="orderPrice">$12.99</div>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label>👤 Your Name</label>
+                    <input type="text" id="orderName" placeholder="Your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>📱 Phone Number</label>
+                    <input type="text" id="orderPhone" placeholder="+255 712 345 678" required>
+                </div>
+                <div class="form-group">
+                    <label>📍 Delivery Address</label>
+                    <textarea id="orderAddress" placeholder="Your delivery address..." required></textarea>
+                </div>
+                <button type="submit" class="btn">📦 Place Order</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+        <p>© 2026 <span class="owner">Food Delivery</span> • Delicious Food, Fast Delivery</p>
+        <p style="font-size:11px; margin-top:4px; color:var(--text-muted);">🍕 Made with ❤️ • All Rights Reserved</p>
+    </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIG - SDK YAKO
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDpFyANpjv2dMUvXoMSSmqoT3s1UwJLUkg",
+    authDomain: "dvary-9a7d0.firebaseapp.com",
+    projectId: "dvary-9a7d0",
+    storageBucket: "dvary-9a7d0.firebasestorage.app",
+    messagingSenderId: "107370806066",
+    appId: "1:107370806066:android:e954fb03d99e52ac09f52b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ============================================
+// THEME SYSTEM
+// ============================================
+let isDark = false;
+
+function toggleTheme() {
+    isDark = !isDark;
+    document.getElementById('htmlElement').setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('food-theme', isDark ? 'dark' : 'light');
+    document.querySelector('.theme-btn i').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('food-theme') || 'light';
+isDark = savedTheme === 'dark';
+document.getElementById('htmlElement').setAttribute('data-theme', savedTheme);
+document.querySelector('.theme-btn i').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
+const loginForm = document.getElementById('loginFormElement');
+const signupForm = document.getElementById('signupFormElement');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signupName = document.getElementById('signupName');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirm = document.getElementById('signupConfirm');
+const signInBtn = document.getElementById('signInBtn');
+const loading = document.getElementById('loading');
+const message = document.getElementById('message');
+const tabBtns = document.querySelectorAll('.tab-btn');
+
+function showLoading() { loading.classList.add('active'); }
+function hideLoading() { loading.classList.remove('active'); }
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = 'message active ' + type;
+    setTimeout(() => message.classList.remove('active'), 5000);
+}
+
+function clearForms() {
+    loginEmail.value = '';
+    loginPassword.value = '';
+    signupName.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+    signupConfirm.value = '';
+}
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab + 'Form').classList.add('active');
+        message.classList.remove('active');
+    });
+});
+
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+    const confirm = signupConfirm.value;
+    
+    if (!name || !email || !password || !confirm) {
+        showMessage('Please fill all fields', 'error');
+        return;
+    }
+    if (password !== confirm) {
+        showMessage('Passwords do not match!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showMessage('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: name });
+        hideLoading();
+        showMessage('✅ Account created! Welcome!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/email-already-in-use': msg += 'Email already in use.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/weak-password': msg += 'Password is too weak.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    
+    if (!email || !password) {
+        showMessage('Please fill email and password', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        hideLoading();
+        showMessage('✅ Login successful!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/user-not-found': msg += 'Account not found. Please sign up.'; break;
+            case 'auth/wrong-password': msg += 'Incorrect password.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/too-many-requests': msg += 'Too many attempts. Try again later.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+signInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        await auth.signInWithPopup(googleProvider);
+        hideLoading();
+        showMessage('✅ Login with Google successful!', 'success');
+    } catch (error) {
+        hideLoading();
+        if (error.code === 'auth/popup-blocked') {
+            showMessage('⚠️ Please allow popups for this site.', 'error');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showMessage('Login cancelled.', 'info');
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    }
+});
+
+function handleLogout() {
+    auth.signOut().then(() => {
+        appContent.classList.remove('visible');
+        loginScreen.style.display = 'flex';
+        document.getElementById('adminPanel').classList.remove('visible');
+    }).catch((error) => console.error('Logout error:', error));
+}
+
+// ============================================
+// FOOD DATA
+// ============================================
+let foods = [];
+let currentCategory = 'all';
+let currentUser = null;
+
+const defaultFoods = [
+    { id: 1, name: 'Margherita Pizza', price: '$12.99', category: 'pizza', emoji: '🍕', desc: 'Classic tomato, mozzarella, and basil' },
+    { id: 2, name: 'Pepperoni Pizza', price: '$14.99', category: 'pizza', emoji: '🍕', desc: 'Pepperoni, mozzarella, and tomato sauce' },
+    { id: 3, name: 'Cheese Burger', price: '$9.99', category: 'burger', emoji: '🍔', desc: 'Beef patty with cheese and fresh veggies' },
+    { id: 4, name: 'Veggie Burger', price: '$10.99', category: 'burger', emoji: '🌱', desc: 'Plant-based patty with fresh toppings' },
+    { id: 5, name: 'Spaghetti Carbonara', price: '$13.99', category: 'pasta', emoji: '🍝', desc: 'Pasta with egg, cheese, pancetta, and pepper' },
+    { id: 6, name: 'Fettuccine Alfredo', price: '$14.99', category: 'pasta', emoji: '🍝', desc: 'Creamy Parmesan pasta with garlic' },
+    { id: 7, name: 'California Roll', price: '$11.99', category: 'sushi', emoji: '🍣', desc: 'Crab, avocado, and cucumber roll' },
+    { id: 8, name: 'Spicy Tuna Roll', price: '$13.99', category: 'sushi', emoji: '🍣', desc: 'Tuna with spicy mayo and cucumber' },
+    { id: 9, name: 'Chicken Taco', price: '$8.99', category: 'taco', emoji: '🌮', desc: 'Grilled chicken with salsa and guacamole' },
+    { id: 10, name: 'Fish Taco', price: '$9.99', category: 'taco', emoji: '🌮', desc: 'Crispy fish with slaw and spicy sauce' },
+    { id: 11, name: 'Strawberry Smoothie', price: '$6.99', category: 'drink', emoji: '🥤', desc: 'Fresh strawberry with yogurt and honey' },
+    { id: 12, name: 'Mango Smoothie', price: '$6.99', category: 'drink', emoji: '🥤', desc: 'Sweet mango with orange and banana' },
+    { id: 13, name: 'Chocolate Cake', price: '$7.99', category: 'dessert', emoji: '🍰', desc: 'Rich chocolate cake with ganache' },
+    { id: 14, name: 'Cheesecake', price: '$8.99', category: 'dessert', emoji: '🍰', desc: 'Creamy cheesecake with berry topping' },
+    { id: 15, name: 'Hawaiian Pizza', price: '$15.99', category: 'pizza', emoji: '🍕', desc: 'Ham, pineapple, and mozzarella' },
+    { id: 16, name: 'Mushroom Burger', price: '$10.99', category: 'burger', emoji: '🍔', desc: 'Beef patty with grilled mushrooms' },
+];
+
+// ============================================
+// LOAD FOODS FROM FIRESTORE OR LOCAL
+// ============================================
+async function loadFoods() {
+    try {
+        const snapshot = await db.collection('foods').orderBy('createdAt', 'desc').get();
+        if (!snapshot.empty) {
+            foods = [];
+            snapshot.forEach(doc => {
+                foods.push({ id: doc.id, ...doc.data() });
+            });
+        } else {
+            foods = [...defaultFoods];
+            for (const food of foods) {
+                await db.collection('foods').add({
+                    name: food.name,
+                    price: food.price,
+                    category: food.category,
+                    emoji: food.emoji,
+                    desc: food.desc,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        }
+        renderFoods();
+        renderAdminList();
+        updateOrderBadge();
+    } catch (error) {
+        console.error('Error loading foods:', error);
+        foods = [...defaultFoods];
+        renderFoods();
+        renderAdminList();
+    }
+}
+
+// ============================================
+// RENDER FOODS
+// ============================================
+function renderFoods(category = currentCategory) {
+    const grid = document.getElementById('foodGrid');
+    let filtered = foods;
+    
+    if (category !== 'all') {
+        filtered = foods.filter(f => f.category === category);
+    }
+    
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (searchTerm) {
+        filtered = filtered.filter(f => 
+            f.name.toLowerCase().includes(searchTerm) || 
+            f.desc.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-muted);">
+                <i class="fas fa-utensils" style="font-size:50px; display:block; margin-bottom:15px; opacity:0.3;"></i>
+                <p>No food items available</p>
+                <p style="font-size:13px; margin-top:5px;">Admin will add soon!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = filtered.map(food => `
+        <div class="food-card">
+            <div class="image">
+                ${food.emoji || '🍽️'}
+                <div class="price-tag">${food.price || '$0.00'}</div>
+            </div>
+            <div class="info">
+                <h3>${food.name || 'Food Item'}</h3>
+                <p>${food.desc || 'Delicious food item'}</p>
+                <span class="category-tag">${food.category || 'food'}</span>
+            </div>
+            <button class="order-btn" onclick="openOrderModal('${food.id}')">
+                <i class="fas fa-shopping-cart"></i> Order Now
+            </button>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// SEARCH
+// ============================================
+document.getElementById('searchInput').addEventListener('input', function() {
+    renderFoods(currentCategory);
+});
+
+// ============================================
+// RENDER ADMIN LIST
+// ============================================
+function renderAdminList() {
+    const list = document.getElementById('adminList');
+    if (foods.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-muted);">No food items added yet</p>`;
+        return;
+    }
+    
+    list.innerHTML = foods.map((food, index) => `
+        <div class="admin-item">
+            <div class="item-info">
+                <h4>${food.emoji || '🍽️'} ${food.name || 'Food'}</h4>
+                <p>${food.price || '$0.00'} • ${food.category || 'food'} • ${food.desc || ''}</p>
+            </div>
+            <div class="item-actions">
+                <button class="edit-btn" onclick="editFood('${food.id}')">✏️ Edit</button>
+                <button class="delete-btn" onclick="deleteFood('${food.id}')">🗑️ Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// ADMIN FUNCTIONS
+// ============================================
+let adminPassword = '5050';
+let adminVisible = false;
+
+function toggleAdmin() {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    
+    const panel = document.getElementById('adminPanel');
+    if (!adminVisible) {
+        const pwd = prompt('🔑 Enter Admin Password:');
+        if (pwd === adminPassword) {
+            adminVisible = true;
+            panel.classList.add('visible');
+        } else if (pwd !== null) {
+            alert('❌ Incorrect password!');
+        }
+    } else {
+        adminVisible = false;
+        panel.classList.remove('visible');
+    }
+}
+
+function clearAdminForm() {
+    document.getElementById('foodName').value = '';
+    document.getElementById('foodPrice').value = '';
+    document.getElementById('foodCategory').value = 'pizza';
+    document.getElementById('foodEmoji').value = '';
+    document.getElementById('foodDesc').value = '';
+    document.getElementById('editId').value = '';
+    document.querySelector('.admin-form .btn').textContent = '📤 Add Food';
+}
+
+async function saveFood() {
+    const name = document.getElementById('foodName').value.trim();
+    const price = document.getElementById('foodPrice').value.trim();
+    const category = document.getElementById('foodCategory').value;
+    const emoji = document.getElementById('foodEmoji').value.trim() || '🍽️';
+    const desc = document.getElementById('foodDesc').value.trim();
+    const editId = document.getElementById('editId').value;
+    
+    if (!name || !price) {
+        alert('Please fill Name and Price!');
+        return;
+    }
+    
+    try {
+        if (editId) {
+            await db.collection('foods').doc(editId).update({
+                name, price, category, emoji, desc,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('✅ Food updated!');
+        } else {
+            await db.collection('foods').add({
+                name, price, category, emoji, desc,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('✅ Food added!');
+        }
+        clearAdminForm();
+        loadFoods();
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function editFood(id) {
+    const food = foods.find(f => f.id === id);
+    if (!food) return;
+    
+    document.getElementById('foodName').value = food.name || '';
+    document.getElementById('foodPrice').value = food.price || '';
+    document.getElementById('foodCategory').value = food.category || 'pizza';
+    document.getElementById('foodEmoji').value = food.emoji || '';
+    document.getElementById('foodDesc').value = food.desc || '';
+    document.getElementById('editId').value = id;
+    document.querySelector('.admin-form .btn').textContent = '✏️ Update Food';
+    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteFood(id) {
+    if (!confirm('Are you sure you want to delete this food?')) return;
+    
+    try {
+        await db.collection('foods').doc(id).delete();
+        alert('🗑️ Food deleted!');
+        loadFoods();
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// ============================================
+// ORDER MODAL
+// ============================================
+let currentOrderFood = null;
+let orderCount = 0;
+
+function openOrderModal(foodId) {
+    const food = foods.find(f => f.id === foodId);
+    if (!food) return;
+    
+    currentOrderFood = food;
+    document.getElementById('orderIcon').textContent = food.emoji || '🍽️';
+    document.getElementById('orderTitle').textContent = food.name || 'Food';
+    document.getElementById('orderPrice').textContent = food.price || '$0.00';
+    document.getElementById('orderModal').classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOrderModal() {
+    document.getElementById('orderModal').classList.remove('visible');
+    document.body.style.overflow = '';
+}
+
+function updateOrderBadge() {
+    const badge = document.querySelector('.nav-icon-btn .badge');
+    if (badge) {
+        badge.textContent = orderCount;
+        badge.style.display = orderCount > 0 ? 'block' : 'none';
+    }
+}
+
+// Order form
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('orderName').value.trim();
+    const phone = document.getElementById('orderPhone').value.trim();
+    const address = document.getElementById('orderAddress').value.trim();
+    
+    if (!name || !phone || !address) {
+        alert('Please fill all fields!');
+        return;
+    }
+    
+    orderCount++;
+    updateOrderBadge();
+    
+    alert(`✅ Order placed successfully!\n\n🍕 ${currentOrderFood.name}\n👤 ${name}\n📱 ${phone}\n📍 ${address}\n\nThank you for ordering!`);
+    closeOrderModal();
+    this.reset();
+});
+
+// ============================================
+// SECTION NAVIGATION
+// ============================================
+function showSection(section) {
+    if (section === 'home') {
+        document.querySelector('.food-grid').scrollIntoView({ behavior: 'smooth' });
+    } else if (section === 'orders') {
+        alert(`📦 You have ${orderCount} order(s)`);
+    } else if (section === 'contact') {
+        alert(`📞 Contact Us\n\n📧 Email: support@fooddelivery.com\n📱 Phone: +255 712 345 678\n📍 Location: Dar es Salaam, Tanzania`);
+    }
+}
+
+// ============================================
+// CATEGORY BUTTONS
+// ============================================
+document.querySelectorAll('.categories button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.categories button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentCategory = this.dataset.category;
+        renderFoods(currentCategory);
+    });
+});
+
+// ============================================
+// AUTH STATE LISTENER
+// ============================================
+const loginScreen = document.getElementById('loginScreen');
+const appContent = document.getElementById('appContent');
+
+auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    if (user) {
+        loginScreen.style.display = 'none';
+        appContent.classList.add('visible');
+        document.getElementById('userAvatar').textContent = (user.displayName || 'U')[0].toUpperCase();
+        loadFoods();
+    } else {
+        loginScreen.style.display = 'flex';
+        appContent.classList.remove('visible');
+        document.getElementById('adminPanel').classList.remove('visible');
+        adminVisible = false;
+    }
+});
+
+// Close modal on outside click
+document.getElementById('orderModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeOrderModal();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeOrderModal();
+        if (document.getElementById('adminPanel').classList.contains('visible')) {
+            toggleAdmin();
+        }
+    }
+});
+
+console.log('🍕 Food Delivery App Loaded!');
+console.log('👑 Admin Password: 5050');
+console.log('📦 ' + foods.length + ' food items loaded');
+console.log('🌓 Theme: ' + savedTheme);
+</script>
+</body>
+              </html>
