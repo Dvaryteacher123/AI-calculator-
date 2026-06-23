@@ -1,7 +1,7 @@
 {
   "name": "dvary-boost-backend",
   "version": "1.0.0",
-  "description": "DVARY BOOST - Backend for Pesapal & 5SMM Integration",
+  "description": "DVARY BOOST Backend for Pesapal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -13,8 +13,5 @@
   },
   "engines": {
     "node": "18.x"
-  },
-  "keywords": ["pesapal", "5smm", "boost", "followers", "tanzania"],
-  "author": "DVARY",
-  "license": "MIT"
+  }
 }
