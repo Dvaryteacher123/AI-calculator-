@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlElement">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 DVARY BOOST - Buy Followers</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111828;
+            --bg-card: rgba(255,255,255,0.03);
+            --text-primary: #ffffff;
+            --text-secondary: #8899bb;
+            --text-muted: #556688;
+            --border-color: rgba(255,255,255,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --gradient-1: #ff6b35;
+            --gradient-2: #f7931e;
+            --gradient-3: #ff006e;
+            --accent: #ff6b35;
+            --accent-glow: rgba(255,107,53,0.15);
+            --glass-bg: rgba(255,255,255,0.02);
+            --glass-border: rgba(255,255,255,0.05);
+            --nav-bg: rgba(10,14,26,0.95);
+            --input-bg: rgba(255,255,255,0.05);
+            --success: #00ff88;
+            --pending: #ffd700;
+            --failed: #ff4444;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #f0f2f8;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0,0,0,0.02);
+            --text-primary: #1a1a2e;
+            --text-secondary: #444466;
+            --text-muted: #8888aa;
+            --border-color: rgba(0,0,0,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.8);
+            --glass-border: rgba(0,0,0,0.05);
+            --nav-bg: rgba(240,242,248,0.95);
+            --input-bg: #f0f2f8;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .login-bg-deco {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .login-bg-deco .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(255,0,110,0.03));
+            animation: floatCircle 20s infinite linear;
+        }
+        
+        @keyframes floatCircle {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 50px) scale(0.95); }
+            75% { transform: translate(30px, -20px) scale(1.02); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        
+        .login-bg-deco .rocket {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.03;
+            animation: floatRocket 20s infinite linear;
+        }
+        
+        @keyframes floatRocket {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.03; }
+            90% { opacity: 0.03; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+        
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 2px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 45px 40px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            animation: glowBorder 3s ease-in-out infinite;
+        }
+        
+        @keyframes glowBorder {
+            0%, 100% { border-color: rgba(255,107,53,0.1); }
+            50% { border-color: rgba(255,107,53,0.25); }
+        }
+        
+        .login-container .logo { text-align: center; margin-bottom: 25px; }
+        .login-container .logo .icon { font-size: 60px; display: block; animation: pulseIcon 3s ease-in-out infinite; }
+        @keyframes pulseIcon { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .login-container .logo h1 { font-size: 32px; font-weight: 900; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
+        .login-container .logo p { color: var(--text-secondary); font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-top: 3px; }
+        
+        .login-container .tabs { display: flex; gap: 8px; margin-bottom: 25px; background: var(--input-bg); border-radius: 16px; padding: 5px; border: 1px solid var(--border-color); }
+        .login-container .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 12px; transition: all 0.3s ease; }
+        .login-container .tab-btn.active { background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); color: #fff; box-shadow: 0 4px 20px var(--accent-glow); }
+        .login-container .tab-btn:hover:not(.active) { color: var(--text-primary); }
+        
+        .login-container .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .login-container .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .login-container .form-group { margin-bottom: 18px; }
+        .login-container .form-group label { display: block; color: var(--text-secondary); font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+        .login-container .form-group input { width: 100%; padding: 14px 16px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-primary); font-size: 15px; transition: all 0.3s ease; outline: none; }
+        .login-container .form-group input:focus { border-color: var(--gradient-1); box-shadow: 0 0 30px var(--accent-glow); }
+        .login-container .form-group input::placeholder { color: var(--text-muted); }
+        
+        .login-container .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+        .login-container .btn-primary { background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); color: white; box-shadow: 0 4px 20px var(--accent-glow); }
+        .login-container .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px var(--accent-glow); }
+        .login-container .btn-google { background: var(--input-bg); color: var(--text-primary); border: 2px solid var(--border-color); }
+        .login-container .btn-google:hover { border-color: var(--gradient-1); transform: translateY(-2px); }
+        .login-container .btn-google svg { width: 20px; height: 20px; }
+        
+        .login-container .divider { display: flex; align-items: center; margin: 20px 0; }
+        .login-container .divider::before, .login-container .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
+        .login-container .divider-text { color: var(--text-muted); font-size: 11px; padding: 0 14px; text-transform: uppercase; letter-spacing: 3px; }
+        
+        .login-container .message { display: none; padding: 12px 16px; border-radius: 12px; margin-top: 15px; font-size: 14px; font-weight: 500; }
+        .login-container .message.active { display: block; }
+        .login-container .message.error { background: rgba(220,53,69,0.1); border: 1px solid rgba(220,53,69,0.15); color: #dc3545; }
+        .login-container .message.success { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.15); color: var(--success); }
+        
+        .login-container .loading { display: none; text-align: center; padding: 12px; color: var(--text-secondary); font-size: 14px; }
+        .login-container .loading.active { display: block; }
+        .login-container .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid var(--border-color); border-radius: 50%; border-top-color: var(--gradient-1); animation: spin 0.8s ease-in-out infinite; margin-right: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ===== MAIN APP ===== */
+        #appContent { display: none; position: relative; z-index: 1; min-height: 100vh; }
+        #appContent.visible { display: block; }
+        
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .navbar .brand { display: flex; align-items: center; gap: 10px; }
+        .navbar .brand .logo-text { font-size: 22px; font-weight: 900; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+        
+        .navbar .right-section { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .navbar .right-section .theme-btn { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--input-bg); color: var(--text-secondary); cursor: pointer; font-size: 16px; transition: all 0.3s ease; }
+        .navbar .right-section .theme-btn:hover { border-color: var(--gradient-1); color: var(--gradient-1); }
+        .navbar .right-section .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 14px; }
+        .navbar .right-section .logout-btn { padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 10px; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 12px; transition: all 0.3s ease; }
+        .navbar .right-section .logout-btn:hover { border-color: #dc3545; color: #dc3545; }
+        
+        /* ===== BALANCE ===== */
+        .balance-section {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .balance-section .balance-amount {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+        .balance-section .balance-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .balance-section .balance-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .balance-section .balance-actions button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .balance-section .balance-actions .btn-deposit {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+        }
+        .balance-section .balance-actions .btn-deposit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        .balance-section .balance-actions .btn-history {
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .balance-section .balance-actions .btn-history:hover {
+            border-color: var(--gradient-1);
+            color: var(--gradient-1);
+        }
+        
+        /* ===== PACKAGES ===== */
+        .packages {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .package-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .package-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--gradient-1);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+        
+        .package-card .pkg-icon { font-size: 35px; display: block; margin-bottom: 8px; }
+        .package-card .pkg-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .package-card .pkg-followers { font-size: 26px; font-weight: 900; color: var(--gradient-1); margin: 6px 0; }
+        .package-card .pkg-price { font-size: 18px; font-weight: 700; color: var(--text-secondary); }
+        .package-card .pkg-price span { font-size: 13px; color: var(--text-muted); }
+        .package-card .pkg-desc { color: var(--text-muted); font-size: 12px; margin: 8px 0; }
+        .package-card .pkg-badge { display: inline-block; padding: 2px 12px; border-radius: 20px; font-size: 9px; font-weight: 600; background: var(--accent-glow); color: var(--gradient-1); }
+        .package-card .btn-buy { width: 100%; padding: 10px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); color: white; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 13px; margin-top: 12px; }
+        .package-card .btn-buy:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
+        .package-card .btn-buy:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        /* ===== ORDERS ===== */
+        .orders-section {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .orders-section h2 { color: var(--text-primary); margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        .orders-section h2 i { color: var(--gradient-1); margin-right: 10px; }
+        
+        .order-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .order-item:hover { border-color: var(--gradient-1); }
+        .order-item .info { flex: 1; }
+        .order-item .info .pkg { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+        .order-item .info .details { font-size: 11px; color: var(--text-muted); }
+        .order-item .status { padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .order-item .status.completed { background: rgba(0,255,136,0.15); color: var(--success); }
+        .order-item .status.pending { background: rgba(255,215,0,0.15); color: var(--pending); }
+        .order-item .status.failed { background: rgba(255,68,68,0.15); color: var(--failed); }
+        
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.visible { display: flex; }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            position: relative;
+        }
+        .modal-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.3s ease; }
+        .modal-close:hover { background: #dc3545; color: white; border-color: #dc3545; }
+        .modal-content .modal-icon { font-size: 45px; text-align: center; display: block; margin-bottom: 8px; }
+        .modal-content h2 { text-align: center; color: var(--text-primary); font-size: 20px; }
+        .modal-content .modal-price { text-align: center; font-size: 26px; color: var(--gradient-1); font-weight: 700; margin-bottom: 15px; }
+        .modal-content .form-group { margin-bottom: 12px; }
+        .modal-content .form-group label { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
+        .modal-content .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-primary); font-size: 14px; outline: none; transition: all 0.3s ease; }
+        .modal-content .form-group input:focus { border-color: var(--gradient-1); }
+        .modal-content .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); color: white; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s ease; }
+        .modal-content .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
+        .modal-content .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-content .btn-pesapal { background: linear-gradient(135deg, #00a86b, #008f5a); margin-top: 10px; }
+        .modal-content .btn-pesapal:hover { box-shadow: 0 8px 30px rgba(0,168,107,0.3); }
+        
+        .modal-content .payment-methods {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+        .modal-content .payment-methods .pm { padding: 4px 12px; border-radius: 20px; background: var(--input-bg); color: var(--text-muted); font-size: 11px; border: 1px solid var(--border-color); }
+        .modal-content .payment-methods .pm i { margin-right: 4px; }
+        
+        /* ===== FOOTER ===== */
+        .footer { text-align: center; padding: 25px 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 12px; }
+        .footer .owner { color: var(--gradient-1); font-weight: 600; }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .login-container { padding: 30px 20px; margin: 15px; }
+            .login-container .logo h1 { font-size: 26px; }
+            .packages { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; }
+            .balance-section .balance-amount { font-size: 36px; }
+            .navbar .brand .logo-text { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            .packages { grid-template-columns: 1fr; }
+            .login-container { padding: 20px 15px; }
+            .balance-section .balance-amount { font-size: 30px; }
+            .modal-content { padding: 20px; }
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--gradient-1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN BACKGROUND ===== -->
+<div class="login-bg-deco">
+    <div class="circle" style="width:300px; height:300px; top:-100px; right:-100px;"></div>
+    <div class="circle" style="width:200px; height:200px; bottom:-50px; left:-50px; animation-delay:5s;"></div>
+    <div class="circle" style="width:150px; height:150px; top:50%; left:10%; animation-delay:10s;"></div>
+    <div class="rocket" style="left:10%; animation-delay:0s;">🚀</div>
+    <div class="rocket" style="left:30%; animation-delay:5s;">⭐</div>
+    <div class="rocket" style="left:50%; animation-delay:10s;">🚀</div>
+    <div class="rocket" style="left:70%; animation-delay:15s;">⭐</div>
+    <div class="rocket" style="left:90%; animation-delay:20s;">🚀</div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+    <div class="login-container">
+        <div class="logo">
+            <span class="icon">🚀</span>
+            <h1>DVARY BOOST</h1>
+            <p>Buy Followers • Instant Delivery</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">🔑 Login</button>
+            <button class="tab-btn" data-tab="signup">📝 Sign Up</button>
+        </div>
+        
+        <div id="loginForm" class="tab-content active">
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">🚀 Login</button>
+            </form>
+        </div>
+        
+        <div id="signupForm" class="tab-content">
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label>👤 Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>✅ Confirm Password</label>
+                    <input type="password" id="signupConfirm" placeholder="Confirm password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">🚀 Sign Up</button>
+            </form>
+        </div>
+        
+        <div class="divider"><span class="divider-text">Or</span></div>
+        
+        <button id="signInBtn" class="btn btn-google">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Sign in with Google
+        </button>
+        
+        <div id="loading" class="loading"><span class="spinner"></span> Loading...</div>
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="appContent">
+    
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <div class="brand">
+            <span class="logo-text">🚀 DVARY BOOST</span>
+        </div>
+        <div class="right-section">
+            <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+        </div>
+    </nav>
+    
+    <!-- ===== BALANCE ===== -->
+    <div class="balance-section">
+        <span class="balance-label">💰 YOUR BALANCE</span>
+        <span class="balance-amount" id="balanceDisplay">TSh 0.00</span>
+        <div class="balance-actions">
+            <button class="btn-deposit" onclick="openDepositModal()">
+                <i class="fas fa-plus-circle"></i> Deposit
+            </button>
+            <button class="btn-history" onclick="showHistory()">
+                <i class="fas fa-history"></i> History
+            </button>
+        </div>
+    </div>
+    
+    <!-- ===== PACKAGES ===== -->
+    <div class="packages" id="packagesContainer">
+        <!-- Rendered by JS -->
+    </div>
+    
+    <!-- ===== ORDERS ===== -->
+    <div class="orders-section" id="ordersSection">
+        <h2><i class="fas fa-list"></i> Order History</h2>
+        <div id="ordersList">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+    
+    <!-- ===== DEPOSIT MODAL ===== -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDepositModal()">✕</button>
+            <span class="modal-icon">💳</span>
+            <h2>Deposit Funds</h2>
+            <div class="modal-price" id="depositAmount">TSh 0.00</div>
+            
+            <div class="payment-methods">
+                <span class="pm"><i class="fas fa-mobile-alt"></i> M-Pesa</span>
+                <span class="pm"><i class="fas fa-mobile-alt"></i> Airtel</span>
+                <span class="pm"><i class="fas fa-credit-card"></i> Card</span>
+            </div>
+            
+            <form id="depositForm">
+                <div class="form-group">
+                    <label>💰 Amount (TSh)</label>
+                    <input type="number" id="depositInput" placeholder="5000" min="1000" step="100" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="depositEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>📱 Phone Number</label>
+                    <input type="text" id="depositPhone" placeholder="+255 712 345 678" required>
+                </div>
+                <button type="submit" class="btn btn-pesapal">
+                    <i class="fas fa-lock"></i> Pay with Pesapal
+                </button>
+            </form>
+            
+            <p style="text-align:center; color:var(--text-muted); font-size:10px; margin-top:10px;">
+                🔒 Secured by Pesapal • Instant Deposit
+            </p>
+        </div>
+    </div>
+    
+    <!-- ===== BUY MODAL ===== -->
+    <div class="modal" id="buyModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeBuyModal()">✕</button>
+            <span class="modal-icon" id="buyIcon">🚀</span>
+            <h2 id="buyTitle">Boost Package</h2>
+            <div class="modal-price" id="buyPrice">TSh 0.00</div>
+            
+            <form id="buyForm">
+                <div class="form-group">
+                    <label>🔗 Social Media Username</label>
+                    <input type="text" id="buyUsername" placeholder="e.g. @yourusername" required>
+                </div>
+                <div class="form-group">
+                    <label>📱 Phone Number</label>
+                    <input type="text" id="buyPhone" placeholder="+255 712 345 678" required>
+                </div>
+                <button type="submit" class="btn" id="buyBtn">
+                    <i class="fas fa-rocket"></i> Buy Now
+                </button>
+            </form>
+            
+            <p style="text-align:center; color:var(--text-muted); font-size:10px; margin-top:10px;">
+                ⚡ Instant Delivery • 100% Safe
+            </p>
+        </div>
+    </div>
+    
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+        <p>© 2026 <span class="owner">DVARY BOOST</span> • Buy Followers Instantly</p>
+        <p style="font-size:10px; margin-top:3px; color:var(--text-muted);">🚀 Powered by Pesapal & 5SMM</p>
+    </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIG
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDpFyANpjv2dMUvXoMSSmqoT3s1UwJLUkg",
+    authDomain: "dvary-9a7d0.firebaseapp.com",
+    projectId: "dvary-9a7d0",
+    storageBucket: "dvary-9a7d0.firebasestorage.app",
+    messagingSenderId: "107370806066",
+    appId: "1:107370806066:android:e954fb03d99e52ac09f52b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ============================================
+// BACKEND URL - BADILISHA HII BAADA YA DEPLOY
+// ============================================
+const BACKEND_URL = window.location.origin; // Inatumia backend same domain
+// Ikiwa backend iko kwenye domain tofauti, badilisha hapa:
+// const BACKEND_URL = 'https://your-backend.onrender.com';
+
+// ============================================
+// API CREDENTIALS
+// ============================================
+const SMM_API_KEY = '63d0354f3e91e4a65650dd012a331064';
+
+// ============================================
+// THEME SYSTEM
+// ============================================
+let isDark = true;
+
+function toggleTheme() {
+    isDark = !isDark;
+    document.getElementById('htmlElement').setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('boost-theme', isDark ? 'dark' : 'light');
+    document.querySelector('.theme-btn i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+}
+
+const savedTheme = localStorage.getItem('boost-theme') || 'dark';
+isDark = savedTheme === 'dark';
+document.getElementById('htmlElement').setAttribute('data-theme', savedTheme);
+document.querySelector('.theme-btn i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
+const loginForm = document.getElementById('loginFormElement');
+const signupForm = document.getElementById('signupFormElement');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signupName = document.getElementById('signupName');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirm = document.getElementById('signupConfirm');
+const signInBtn = document.getElementById('signInBtn');
+const loading = document.getElementById('loading');
+const message = document.getElementById('message');
+const tabBtns = document.querySelectorAll('.tab-btn');
+
+function showLoading() { loading.classList.add('active'); }
+function hideLoading() { loading.classList.remove('active'); }
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = 'message active ' + type;
+    setTimeout(() => message.classList.remove('active'), 5000);
+}
+function clearForms() {
+    loginEmail.value = ''; loginPassword.value = '';
+    signupName.value = ''; signupEmail.value = '';
+    signupPassword.value = ''; signupConfirm.value = '';
+}
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab + 'Form').classList.add('active');
+        message.classList.remove('active');
+    });
+});
+
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+    const confirm = signupConfirm.value;
+    if (!name || !email || !password || !confirm) {
+        showMessage('Please fill all fields', 'error');
+        return;
+    }
+    if (password !== confirm) {
+        showMessage('Passwords do not match!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showMessage('Password must be at least 6 characters', 'error');
+        return;
+    }
+    showLoading();
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: name });
+        hideLoading();
+        showMessage('✅ Account created! Welcome!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/email-already-in-use': msg += 'Email already in use.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/weak-password': msg += 'Password is too weak.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    if (!email || !password) {
+        showMessage('Please fill email and password', 'error');
+        return;
+    }
+    showLoading();
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        hideLoading();
+        showMessage('✅ Login successful!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/user-not-found': msg += 'Account not found. Please sign up.'; break;
+            case 'auth/wrong-password': msg += 'Incorrect password.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/too-many-requests': msg += 'Too many attempts. Try again later.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+signInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        await auth.signInWithPopup(googleProvider);
+        hideLoading();
+        showMessage('✅ Login with Google successful!', 'success');
+    } catch (error) {
+        hideLoading();
+        if (error.code === 'auth/popup-blocked') {
+            showMessage('⚠️ Please allow popups for this site.', 'error');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showMessage('Login cancelled.', 'info');
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    }
+});
+
+function handleLogout() {
+    auth.signOut().then(() => {
+        appContent.classList.remove('visible');
+        loginScreen.style.display = 'flex';
+    }).catch((error) => console.error('Logout error:', error));
+}
+
+// ============================================
+// PACKAGES DATA
+// ============================================
+const packages = [
+    { id: 'starter', name: 'Starter', icon: '🌱', followers: 100, price: 5000, desc: 'Perfect for getting started' },
+    { id: 'popular', name: 'Popular', icon: '🔥', followers: 500, price: 15000, desc: 'Most popular package' },
+    { id: 'pro', name: 'Pro', icon: '⭐', followers: 1500, price: 40000, desc: 'Best value for creators' },
+    { id: 'vip', name: 'VIP', icon: '👑', followers: 5000, price: 100000, desc: 'Maximum growth' }
+];
+
+// ============================================
+// RENDER PACKAGES
+// ============================================
+function renderPackages() {
+    const container = document.getElementById('packagesContainer');
+    container.innerHTML = packages.map(pkg => `
+        <div class="package-card">
+            <span class="pkg-icon">${pkg.icon}</span>
+            <div class="pkg-name">${pkg.name}</div>
+            <div class="pkg-followers">+${pkg.followers}</div>
+            <div class="pkg-price">TSh ${pkg.price.toLocaleString()} <span>($${(pkg.price/2500).toFixed(2)})</span></div>
+            <div class="pkg-desc">${pkg.desc}</div>
+            <span class="pkg-badge">⚡ Instant</span>
+            <button class="btn-buy" onclick="openBuyModal('${pkg.id}')">
+                <i class="fas fa-rocket"></i> Buy Now
+            </button>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// DEPOSIT SYSTEM - PESAPAL VIA BACKEND
+// ============================================
+function openDepositModal() {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    document.getElementById('depositEmail').value = currentUser.email || '';
+    document.getElementById('depositModal').classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDepositModal() {
+    document.getElementById('depositModal').classList.remove('visible');
+    document.body.style.overflow = '';
+    document.getElementById('depositForm').reset();
+}
+
+// Deposit form - Calls Backend
+document.getElementById('depositForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    
+    const amount = parseInt(document.getElementById('depositInput').value);
+    const email = document.getElementById('depositEmail').value.trim();
+    const phone = document.getElementById('depositPhone').value.trim();
+    
+    if (!amount || amount < 1000) {
+        alert('Minimum deposit is TSh 1,000');
+        return;
+    }
+    
+    if (!email || !phone) {
+        alert('Please fill all fields!');
+        return;
+    }
+    
+    const depositBtn = this.querySelector('button[type="submit"]');
+    depositBtn.disabled = true;
+    depositBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+        // 1. Get token from backend
+        console.log('🔄 Getting token from backend...');
+        const tokenRes = await fetch(`${BACKEND_URL}/api/token`);
+        const tokenData = await tokenRes.json();
+        
+        if (!tokenData.token) {
+            throw new Error('Failed to get token: ' + JSON.stringify(tokenData));
+        }
+        console.log('✅ Token received');
+        
+        // 2. Register IPN
+        console.log('🔄 Registering IPN...');
+        const ipnRes = await fetch(`${BACKEND_URL}/api/register-ipn`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: tokenData.token })
+        });
+        const ipnData = await ipnRes.json();
+        const ipnId = ipnData.ipn_id || '12345';
+        console.log('✅ IPN registered');
+        
+        // 3. Submit order
+        console.log('🔄 Submitting order...');
+        const orderRes = await fetch(`${BACKEND_URL}/api/order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                token: tokenData.token,
+                amount: amount,
+                email: email,
+                phone: phone,
+                ipnId: ipnId,
+                name: currentUser.displayName || 'Customer'
+            })
+        });
+        
+        const orderResult = await orderRes.json();
+        console.log('Order result:', orderResult);
+        
+        if (orderResult.redirect_url) {
+            // Save order to Firebase
+            await db.collection('transactions').add({
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                type: 'deposit',
+                amount: amount,
+                currency: 'TZS',
+                status: 'pending',
+                customerEmail: email,
+                customerPhone: phone,
+                orderTrackingId: orderResult.order_tracking_id || 'N/A',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            closeDepositModal();
+            // Open Pesapal payment page
+            window.open(orderResult.redirect_url, '_blank');
+            alert('✅ Payment initiated!\n\nPlease complete payment on Pesapal page.\n\nAfter payment, your balance will be updated automatically.');
+        } else {
+            throw new Error('No redirect URL received');
+        }
+        
+    } catch (error) {
+        console.error('❌ Deposit error:', error);
+        alert('❌ Error: ' + error.message + '\n\nPlease try again or contact support.');
+    } finally {
+        depositBtn.disabled = false;
+        depositBtn.innerHTML = '<i class="fas fa-lock"></i> Pay with Pesapal';
+    }
+});
+
+// ============================================
+// BUY FOLLOWERS SYSTEM
+// ============================================
+let selectedPackage = null;
+
+function openBuyModal(pkgId) {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    selectedPackage = packages.find(p => p.id === pkgId);
+    if (!selectedPackage) return;
+    
+    document.getElementById('buyIcon').textContent = selectedPackage.icon;
+    document.getElementById('buyTitle').textContent = selectedPackage.name + ' - +' + selectedPackage.followers + ' Followers';
+    document.getElementById('buyPrice').textContent = 'TSh ' + selectedPackage.price.toLocaleString();
+    document.getElementById('buyModal').classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBuyModal() {
+    document.getElementById('buyModal').classList.remove('visible');
+    document.body.style.overflow = '';
+    document.getElementById('buyForm').reset();
+}
+
+// Buy form - uses balance
+document.getElementById('buyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentUser || !selectedPackage) return;
+    
+    const username = document.getElementById('buyUsername').value.trim();
+    const phone = document.getElementById('buyPhone').value.trim();
+    
+    if (!username || !phone) {
+        alert('Please fill all fields!');
+        return;
+    }
+    
+    const buyBtn = this.querySelector('button[type="submit"]');
+    buyBtn.disabled = true;
+    buyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+        // 1. Check if user has enough balance
+        const balance = await getUserBalance();
+        if (balance < selectedPackage.price) {
+            alert(`❌ Insufficient balance!\n\nYou have: TSh ${balance.toLocaleString()}\nNeed: TSh ${selectedPackage.price.toLocaleString()}\n\nPlease deposit first.`);
+            buyBtn.disabled = false;
+            buyBtn.innerHTML = '<i class="fas fa-rocket"></i> Buy Now';
+            return;
+        }
+        
+        // 2. Deduct balance
+        await deductBalance(currentUser.uid, selectedPackage.price);
+        
+        // 3. Send order to 5SMM API
+        const smmOrder = await sendTo5SMM(selectedPackage, username);
+        
+        // 4. Save order to Firebase
+        const orderData = {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            type: 'boost',
+            package: selectedPackage.name,
+            followers: selectedPackage.followers,
+            amount: selectedPackage.price,
+            username: username,
+            phone: phone,
+            status: 'completed',
+            smmOrderId: smmOrder.order_id || 'N/A',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await db.collection('transactions').add(orderData);
+        
+        // 5. Update UI
+        closeBuyModal();
+        await loadUserData();
+        alert(`✅ Success!\n\n+${selectedPackage.followers} followers added to @${username}\n\nOrder ID: ${smmOrder.order_id || 'N/A'}`);
+        
+    } catch (error) {
+        console.error('❌ Buy error:', error);
+        alert('❌ Error: ' + error.message);
+        // Refund if error occurs
+        await refundBalance(currentUser.uid, selectedPackage.price);
+    } finally {
+        buyBtn.disabled = false;
+        buyBtn.innerHTML = '<i class="fas fa-rocket"></i> Buy Now';
+    }
+});
+
+// ============================================
+// 5SMM API
+// ============================================
+async function sendTo5SMM(pkg, username) {
+    const serviceId = pkg.id === 'starter' ? '1' :
+                      pkg.id === 'popular' ? '2' :
+                      pkg.id === 'pro' ? '3' : '4';
+    
+    const response = await fetch(`https://api.5smm.com/api/v1/order`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SMM_API_KEY}`
+        },
+        body: JSON.stringify({
+            service: serviceId,
+            link: `https://instagram.com/${username.replace('@', '')}`,
+            quantity: pkg.followers
+        })
+    });
+    
+    const data = await response.json();
+    if (!data.order_id) {
+        throw new Error('5SMM API error: ' + JSON.stringify(data));
+    }
+    return data;
+}
+
+// ============================================
+// USER BALANCE FUNCTIONS
+// ============================================
+async function getUserBalance() {
+    if (!currentUser) return 0;
+    try {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        return doc.data()?.balance || 0;
+    } catch (error) {
+        console.error('Error getting balance:', error);
+        return 0;
+    }
+}
+
+async function updateUserBalance(amount) {
+    if (!currentUser) return;
+    await db.collection('users').doc(currentUser.uid).set({
+        balance: firebase.firestore.FieldValue.increment(amount)
+    }, { merge: true });
+}
+
+async function deductBalance(uid, amount) {
+    await db.collection('users').doc(uid).update({
+        balance: firebase.firestore.FieldValue.increment(-amount)
+    });
+}
+
+async function refundBalance(uid, amount) {
+    await db.collection('users').doc(uid).update({
+        balance: firebase.firestore.FieldValue.increment(amount)
+    });
+}
+
+// ============================================
+// LOAD USER DATA
+// ============================================
+async function loadUserData() {
+    if (!currentUser) return;
+    
+    const balance = await getUserBalance();
+    document.getElementById('balanceDisplay').textContent = 'TSh ' + balance.toLocaleString();
+    loadOrders();
+}
+
+// ============================================
+// LOAD ORDERS
+// ============================================
+async function loadOrders() {
+    if (!currentUser) return;
+    
+    try {
+        const snapshot = await db.collection('transactions')
+            .where('userId', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .get();
+        
+        const list = document.getElementById('ordersList');
+        
+        if (snapshot.empty) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:20px; color:var(--text-muted);">
+                    <i class="fas fa-inbox" style="font-size:30px; display:block; margin-bottom:8px; opacity:0.3;"></i>
+                    <p style="font-size:13px;">No transactions yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        snapshot.forEach(doc => {
+            const order = doc.data();
+            const statusClass = order.status === 'completed' ? 'completed' : 
+                              order.status === 'pending' ? 'pending' : 'failed';
+            const statusLabel = order.status === 'completed' ? '✅ Completed' :
+                               order.status === 'pending' ? '⏳ Pending' : '❌ Failed';
+            
+            const date = order.createdAt ? 
+                new Date(order.createdAt.seconds * 1000).toLocaleDateString() : '...';
+            
+            const typeIcon = order.type === 'deposit' ? '💰' : '🚀';
+            const typeLabel = order.type === 'deposit' ? 'Deposit' : 'Boost';
+            
+            const amount = order.type === 'deposit' 
+                ? '+' + order.amount.toLocaleString() 
+                : '-' + order.amount.toLocaleString();
+            
+            html += `
+                <div class="order-item">
+                    <div class="info">
+                        <div class="pkg">${typeIcon} ${typeLabel} ${order.package ? '- ' + order.package : ''}</div>
+                        <div class="details">${date} • ${order.username ? '@' + order.username : ''} • TSh ${amount}</div>
+                    </div>
+                    <span class="status ${statusClass}">${statusLabel}</span>
+                </div>
+            `;
+        });
+        
+        list.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
+// ============================================
+// SHOW HISTORY
+// ============================================
+function showHistory() {
+    document.getElementById('ordersSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================
+// TEST MODE - SIMULATE PAYMENT
+// ============================================
+async function simulatePaymentComplete(amount) {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    
+    try {
+        await updateUserBalance(amount);
+        await db.collection('transactions').add({
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            type: 'deposit',
+            amount: amount,
+            currency: 'TZS',
+            status: 'completed',
+            customerEmail: currentUser.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            note: 'Test deposit (Simulated)'
+        });
+        
+        await loadUserData();
+        alert(`✅ Test deposit of TSh ${amount.toLocaleString()} completed!\n\nYour balance has been updated.`);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// ============================================
+// AUTH STATE LISTENER
+// ============================================
+const loginScreen = document.getElementById('loginScreen');
+const appContent = document.getElementById('appContent');
+let currentUser = null;
+
+auth.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    if (user) {
+        loginScreen.style.display = 'none';
+        appContent.classList.add('visible');
+        document.getElementById('userAvatar').textContent = (user.displayName || 'U')[0].toUpperCase();
+        renderPackages();
+        await loadUserData();
+        
+        console.log('✅ User logged in:', user.email);
+        console.log('🔗 Backend URL:', BACKEND_URL);
+    } else {
+        loginScreen.style.display = 'flex';
+        appContent.classList.remove('visible');
+    }
+});
+
+// Close modals on outside click
+document.getElementById('depositModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDepositModal();
+});
+document.getElementById('buyModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBuyModal();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeDepositModal();
+        closeBuyModal();
+    }
+});
+
+// ============================================
+// EXPOSE TEST FUNCTION
+// ============================================
+window.simulatePayment = simulatePaymentComplete;
+
+console.log('🚀 DVARY BOOST - App Loaded!');
+console.log('📦 Packages: ' + packages.length);
+console.log('🔗 Backend URL: ' + BACKEND_URL);
+console.log('\n💡 TEST MODE:');
+console.log('To simulate a deposit, run: simulatePaymentComplete(5000)');
+console.log('This will add TSh 5,000 to your balance for testing.\n');
+</script>
+</body>
+  </html>
