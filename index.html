@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlElement">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ DVARY EFL - Efootball League</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111828;
+            --bg-card: rgba(255,255,255,0.04);
+            --text-primary: #ffffff;
+            --text-secondary: #8899bb;
+            --text-muted: #556688;
+            --border-color: rgba(255,255,255,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --gradient-1: #00ff88;
+            --gradient-2: #00cc66;
+            --gradient-3: #0099ff;
+            --accent: #00ff88;
+            --accent-glow: rgba(0,255,136,0.15);
+            --glass-bg: rgba(255,255,255,0.02);
+            --glass-border: rgba(255,255,255,0.05);
+            --nav-bg: rgba(10,14,26,0.95);
+            --card-hover: rgba(0,255,136,0.03);
+            --input-bg: rgba(255,255,255,0.05);
+            --table-header: rgba(0,255,136,0.05);
+            --table-stripe: rgba(255,255,255,0.02);
+            --login-bg: #0a0e1a;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+        
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-primary: #f0f2f8;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0,0,0,0.02);
+            --text-primary: #1a1a2e;
+            --text-secondary: #444466;
+            --text-muted: #8888aa;
+            --border-color: rgba(0,0,0,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255,255,255,0.8);
+            --glass-border: rgba(0,0,0,0.05);
+            --nav-bg: rgba(240,242,248,0.95);
+            --input-bg: #f0f2f8;
+            --table-header: rgba(0,255,136,0.05);
+            --table-stripe: rgba(0,0,0,0.02);
+            --login-bg: #f0f2f8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* ============================================
+           LOGIN SCREEN - PLAYERS BACKGROUND
+           ============================================ */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: var(--login-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Players Background */
+        .players-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .players-bg .player {
+            position: absolute;
+            font-size: 50px;
+            opacity: 0.04;
+            animation: floatPlayer 20s infinite linear;
+        }
+        
+        @keyframes floatPlayer {
+            0% { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+            10% { opacity: 0.04; }
+            90% { opacity: 0.04; }
+            100% { transform: translateY(-10vh) rotate(720deg) scale(1.5); opacity: 0; }
+        }
+        
+        .players-bg .player-name {
+            position: absolute;
+            font-size: 60px;
+            font-weight: 900;
+            color: rgba(255,255,255,0.02);
+            letter-spacing: 10px;
+            animation: floatName 30s infinite linear;
+            white-space: nowrap;
+        }
+        
+        @keyframes floatName {
+            0% { transform: translateX(-100%) rotate(0deg); }
+            100% { transform: translateX(200%) rotate(360deg); }
+        }
+        
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 2px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 45px 40px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            animation: glowBorder 3s ease-in-out infinite;
+        }
+        
+        @keyframes glowBorder {
+            0%, 100% { border-color: rgba(0,255,136,0.1); box-shadow: 0 0 30px rgba(0,255,136,0.03); }
+            50% { border-color: rgba(0,255,136,0.25); box-shadow: 0 0 60px rgba(0,255,136,0.06); }
+        }
+        
+        .login-container .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-container .logo .icon {
+            font-size: 60px;
+            display: block;
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(3deg); }
+        }
+        
+        .login-container .logo h1 {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+        
+        .login-container .logo h1 .ball {
+            -webkit-text-fill-color: initial;
+            color: var(--gradient-1);
+        }
+        
+        .login-container .logo p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+        
+        .login-container .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: var(--input-bg);
+            border-radius: 16px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .login-container .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .login-container .tab-btn.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: #000;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+        
+        .login-container .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .login-container .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-container .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .login-container .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        .login-container .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .login-container .form-group input:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .login-container .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .login-container .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-container .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: #000;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        
+        .login-container .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 40px var(--accent-glow);
+        }
+        
+        .login-container .btn-google {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+        
+        .login-container .btn-google:hover {
+            border-color: var(--gradient-1);
+            transform: translateY(-2px);
+        }
+        
+        .login-container .btn-google svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .login-container .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .login-container .divider::before,
+        .login-container .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-container .divider-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 0 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .login-container .message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .login-container .message.active {
+            display: block;
+        }
+        
+        .login-container .message.error {
+            background: rgba(220,53,69,0.1);
+            border: 1px solid rgba(220,53,69,0.15);
+            color: #dc3545;
+        }
+        
+        .login-container .message.success {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.15);
+            color: var(--gradient-1);
+        }
+        
+        .login-container .loading {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .login-container .loading.active {
+            display: block;
+        }
+        
+        .login-container .spinner {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--gradient-1);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ============================================
+           MAIN APP
+           ============================================ */
+        #appContent {
+            display: none;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+        
+        #appContent.visible {
+            display: block;
+        }
+        
+        /* ============================================
+           NAVBAR
+           ============================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .navbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar .brand .logo-text {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .navbar .brand .logo-text .ball {
+            -webkit-text-fill-color: initial;
+            color: var(--gradient-1);
+        }
+        
+        .navbar .right-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .navbar .right-section .theme-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .theme-btn:hover {
+            border-color: var(--gradient-1);
+            color: var(--gradient-1);
+        }
+        
+        .navbar .right-section .admin-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: #000;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        .navbar .right-section .logout-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .right-section .logout-btn:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .navbar .right-section .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #000;
+            font-size: 14px;
+        }
+        
+        /* ============================================
+           LEAGUE HEADER
+           ============================================ */
+        .league-header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .league-header .trophy {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .league-header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+        
+        .league-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+        
+        .league-header .season {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        /* ============================================
+           LEAGUE TABLE
+           ============================================ */
+        .table-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+        
+        .league-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .league-table thead {
+            background: var(--table-header);
+            border-bottom: 2px solid var(--gradient-1);
+        }
+        
+        .league-table thead th {
+            padding: 14px 12px;
+            text-align: center;
+            color: var(--gradient-1);
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .league-table thead th:first-child {
+            text-align: center;
+            width: 40px;
+        }
+        
+        .league-table thead th:nth-child(2) {
+            text-align: left;
+            min-width: 180px;
+        }
+        
+        .league-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .league-table tbody tr:hover {
+            background: var(--card-hover);
+        }
+        
+        .league-table tbody tr:nth-child(even) {
+            background: var(--table-stripe);
+        }
+        
+        .league-table tbody td {
+            padding: 12px 10px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .league-table tbody td:first-child {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .league-table tbody td:nth-child(2) {
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .league-table tbody td:nth-child(2) .team-emoji {
+            margin-right: 8px;
+        }
+        
+        /* Position Colors */
+        .league-table tbody tr.top1 td:first-child {
+            color: var(--gold);
+        }
+        
+        .league-table tbody tr.top2 td:first-child {
+            color: var(--silver);
+        }
+        
+        .league-table tbody tr.top3 td:first-child {
+            color: var(--bronze);
+        }
+        
+        .league-table tbody tr.top1 {
+            border-left: 3px solid var(--gold);
+        }
+        
+        .league-table tbody tr.top2 {
+            border-left: 3px solid var(--silver);
+        }
+        
+        .league-table tbody tr.top3 {
+            border-left: 3px solid var(--bronze);
+        }
+        
+        .league-table .points {
+            font-weight: 700;
+            color: var(--gradient-1);
+            font-size: 16px;
+        }
+        
+        /* ============================================
+           ADMIN PANEL
+           ============================================ */
+        .admin-panel {
+            display: none;
+            padding: 20px;
+            margin: 20px;
+            border: 2px solid var(--gradient-1);
+            border-radius: 16px;
+            background: var(--bg-card);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .admin-panel.visible {
+            display: block;
+        }
+        
+        .admin-panel .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .admin-panel .admin-header h2 {
+            color: var(--gradient-1);
+            font-size: 22px;
+        }
+        
+        .admin-panel .admin-header .close-admin {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-header .close-admin:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .admin-panel .admin-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .admin-panel .admin-form .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .admin-panel .admin-form input,
+        .admin-panel .admin-form select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-panel .admin-form input:focus,
+        .admin-panel .admin-form select:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .admin-panel .admin-form .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: #000;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .admin-panel .admin-form .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        
+        .admin-panel .admin-form .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .admin-panel .admin-form .btn-danger:hover {
+            box-shadow: 0 8px 30px rgba(220,53,69,0.3);
+        }
+        
+        .admin-list {
+            margin-top: 20px;
+        }
+        
+        .admin-list .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-list .admin-item:hover {
+            border-color: var(--gradient-1);
+        }
+        
+        .admin-list .admin-item .item-info {
+            flex: 1;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .admin-list .admin-item .item-info .team {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .admin-list .admin-item .item-info .stats {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        .admin-list .admin-item .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .admin-list .admin-item .item-actions button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-list .admin-item .item-actions .edit-btn {
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+        }
+        
+        .admin-list .admin-item .item-actions .edit-btn:hover {
+            background: var(--gradient-1);
+            color: #000;
+        }
+        
+        .admin-list .admin-item .item-actions .delete-btn {
+            background: rgba(220,53,69,0.12);
+            color: #dc3545;
+        }
+        
+        .admin-list .admin-item .item-actions .delete-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 15px;
+            }
+            
+            .login-container .logo h1 {
+                font-size: 26px;
+            }
+            
+            .admin-panel .admin-form {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .navbar .brand .logo-text {
+                font-size: 18px;
+            }
+            
+            .league-table {
+                font-size: 12px;
+            }
+            
+            .league-table thead th {
+                padding: 10px 8px;
+                font-size: 10px;
+            }
+            
+            .league-table tbody td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+            
+            .league-table thead th:nth-child(2) {
+                min-width: 120px;
+            }
+            
+            .admin-list .admin-item {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .admin-list .admin-item .item-info {
+                flex-direction: column;
+                gap: 5px;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px 15px;
+            }
+            
+            .login-container .logo h1 {
+                font-size: 22px;
+            }
+            
+            .league-header h1 {
+                font-size: 22px;
+            }
+            
+            .admin-panel .admin-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .league-table {
+                font-size: 10px;
+            }
+            
+            .league-table thead th {
+                padding: 6px 4px;
+                font-size: 8px;
+            }
+            
+            .league-table tbody td {
+                padding: 6px 4px;
+                font-size: 10px;
+            }
+            
+            .league-table thead th:nth-child(2) {
+                min-width: 80px;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==========================================
+LOGIN BACKGROUND - PLAYERS
+========================================== -->
+<div class="players-bg">
+    <div class="player" style="left:5%; animation-delay:0s;">⚽</div>
+    <div class="player" style="left:20%; animation-delay:5s;">🥅</div>
+    <div class="player" style="left:35%; animation-delay:10s;">⚽</div>
+    <div class="player" style="left:50%; animation-delay:15s;">🏆</div>
+    <div class="player" style="left:65%; animation-delay:20s;">⚽</div>
+    <div class="player" style="left:80%; animation-delay:25s;">👟</div>
+    <div class="player" style="left:95%; animation-delay:30s;">⚽</div>
+    
+    <div class="player-name" style="top:10%; animation-duration:25s;">MESSI</div>
+    <div class="player-name" style="top:30%; animation-duration:30s; animation-delay:5s;">RONALDO</div>
+    <div class="player-name" style="top:50%; animation-duration:28s; animation-delay:10s;">NEYMAR</div>
+    <div class="player-name" style="top:70%; animation-duration:32s; animation-delay:15s;">MBAPPE</div>
+    <div class="player-name" style="top:90%; animation-duration:26s; animation-delay:20s;">HAALAND</div>
+</div>
+
+<!-- ==========================================
+LOGIN SCREEN
+========================================== -->
+<div id="loginScreen">
+    <div class="login-container">
+        <div class="logo">
+            <span class="icon">⚽</span>
+            <h1>DVARY <span class="ball">EFL</span></h1>
+            <p>Efootball League • Season 2026</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">🔑 Login</button>
+            <button class="tab-btn" data-tab="signup">📝 Sign Up</button>
+        </div>
+        
+        <div id="loginForm" class="tab-content active">
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">⚽ Login</button>
+            </form>
+        </div>
+        
+        <div id="signupForm" class="tab-content">
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label>👤 Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>✅ Confirm Password</label>
+                    <input type="password" id="signupConfirm" placeholder="Confirm password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">⚽ Sign Up</button>
+            </form>
+        </div>
+        
+        <div class="divider">
+            <span class="divider-text">Or</span>
+        </div>
+        
+        <button id="signInBtn" class="btn btn-google">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Sign in with Google
+        </button>
+        
+        <div id="loading" class="loading">
+            <span class="spinner"></span> Loading...
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<!-- ==========================================
+MAIN APP
+========================================== -->
+<div id="appContent">
+    
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <div class="brand">
+            <span class="logo-text">⚽ DVARY <span class="ball">EFL</span></span>
+        </div>
+        
+        <div class="right-section">
+            <button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="admin-btn" onclick="toggleAdmin()">👑 Admin</button>
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+        </div>
+    </nav>
+    
+    <!-- ===== LEAGUE HEADER ===== -->
+    <div class="league-header">
+        <span class="trophy">🏆</span>
+        <h1>DVARY EFL - EFOOTBALL LEAGUE</h1>
+        <p>⚽ 20 Teams • Season 2026</p>
+        <span class="season">🏅 SEASON 2026</span>
+    </div>
+    
+    <!-- ===== LEAGUE TABLE ===== -->
+    <div class="table-container">
+        <table class="league-table" id="leagueTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Team</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>D</th>
+                    <th>L</th>
+                    <th>GF</th>
+                    <th>GA</th>
+                    <th>GD</th>
+                    <th>PTS</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Rendered by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- ===== ADMIN PANEL ===== -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>👑 Admin Panel - League Manager</h2>
+            <button class="close-admin" onclick="toggleAdmin()">✕ Close</button>
+        </div>
+        
+        <div class="admin-form" id="adminForm">
+            <input type="text" id="teamName" placeholder="Team Name...">
+            <input type="text" id="teamEmoji" placeholder="Team Emoji (e.g. ⚽)">
+            <input type="number" id="teamP" placeholder="P (Played)" value="0">
+            <input type="number" id="teamW" placeholder="W (Wins)" value="0">
+            <input type="number" id="teamD" placeholder="D (Draws)" value="0">
+            <input type="number" id="teamL" placeholder="L (Losses)" value="0">
+            <input type="number" id="teamGF" placeholder="GF (Goals For)" value="0">
+            <input type="number" id="teamGA" placeholder="GA (Goals Against)" value="0">
+            <input type="hidden" id="editTeamId" value="">
+            <button class="btn full-width" onclick="saveTeam()">⚽ Add/Update Team</button>
+            <button class="btn btn-danger full-width" onclick="clearAdminForm()">🗑️ Clear Form</button>
+        </div>
+        
+        <div class="admin-list" id="adminList">
+            <!-- Rendered by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- ===== FOOTER ===== -->
+    <div class="footer" style="text-align:center; padding:30px 20px; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:13px;">
+        <p>© 2026 <span style="color:var(--gradient-1); font-weight:600;">DVARY EFL</span> • Efootball League</p>
+        <p style="font-size:11px; margin-top:4px; color:var(--text-muted);">⚽ 20 Teams • Season 2026 • All Rights Reserved</p>
+    </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIG - SDK YAKO
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDpFyANpjv2dMUvXoMSSmqoT3s1UwJLUkg",
+    authDomain: "dvary-9a7d0.firebaseapp.com",
+    projectId: "dvary-9a7d0",
+    storageBucket: "dvary-9a7d0.firebasestorage.app",
+    messagingSenderId: "107370806066",
+    appId: "1:107370806066:android:e954fb03d99e52ac09f52b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ============================================
+// THEME SYSTEM
+// ============================================
+let isDark = true;
+
+function toggleTheme() {
+    isDark = !isDark;
+    document.getElementById('htmlElement').setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('efl-theme', isDark ? 'dark' : 'light');
+    document.querySelector('.theme-btn i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('efl-theme') || 'dark';
+isDark = savedTheme === 'dark';
+document.getElementById('htmlElement').setAttribute('data-theme', savedTheme);
+document.querySelector('.theme-btn i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
+const loginForm = document.getElementById('loginFormElement');
+const signupForm = document.getElementById('signupFormElement');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signupName = document.getElementById('signupName');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirm = document.getElementById('signupConfirm');
+const signInBtn = document.getElementById('signInBtn');
+const loading = document.getElementById('loading');
+const message = document.getElementById('message');
+const tabBtns = document.querySelectorAll('.tab-btn');
+
+function showLoading() { loading.classList.add('active'); }
+function hideLoading() { loading.classList.remove('active'); }
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = 'message active ' + type;
+    setTimeout(() => message.classList.remove('active'), 5000);
+}
+
+function clearForms() {
+    loginEmail.value = '';
+    loginPassword.value = '';
+    signupName.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+    signupConfirm.value = '';
+}
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab + 'Form').classList.add('active');
+        message.classList.remove('active');
+    });
+});
+
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+    const confirm = signupConfirm.value;
+    
+    if (!name || !email || !password || !confirm) {
+        showMessage('Please fill all fields', 'error');
+        return;
+    }
+    if (password !== confirm) {
+        showMessage('Passwords do not match!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showMessage('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: name });
+        hideLoading();
+        showMessage('✅ Account created! Welcome!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/email-already-in-use': msg += 'Email already in use.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/weak-password': msg += 'Password is too weak.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    
+    if (!email || !password) {
+        showMessage('Please fill email and password', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        hideLoading();
+        showMessage('✅ Login successful!', 'success');
+        clearForms();
+    } catch (error) {
+        hideLoading();
+        let msg = 'Error: ';
+        switch (error.code) {
+            case 'auth/user-not-found': msg += 'Account not found. Please sign up.'; break;
+            case 'auth/wrong-password': msg += 'Incorrect password.'; break;
+            case 'auth/invalid-email': msg += 'Invalid email address.'; break;
+            case 'auth/too-many-requests': msg += 'Too many attempts. Try again later.'; break;
+            default: msg += error.message;
+        }
+        showMessage(msg, 'error');
+    }
+});
+
+signInBtn.addEventListener('click', async () => {
+    showLoading();
+    try {
+        await auth.signInWithPopup(googleProvider);
+        hideLoading();
+        showMessage('✅ Login with Google successful!', 'success');
+    } catch (error) {
+        hideLoading();
+        if (error.code === 'auth/popup-blocked') {
+            showMessage('⚠️ Please allow popups for this site.', 'error');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showMessage('Login cancelled.', 'info');
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    }
+});
+
+function handleLogout() {
+    auth.signOut().then(() => {
+        appContent.classList.remove('visible');
+        loginScreen.style.display = 'flex';
+        document.getElementById('adminPanel').classList.remove('visible');
+    }).catch((error) => console.error('Logout error:', error));
+}
+
+// ============================================
+// LEAGUE DATA - 20 TEAMS
+// ============================================
+let teams = [];
+let currentUser = null;
+
+const defaultTeams = [
+    { id: 1, name: 'Dvary FC', emoji: '⚽', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 2, name: 'Efootball United', emoji: '⚽', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 3, name: 'Messi Legends', emoji: '🐐', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 4, name: 'Ronaldo FC', emoji: '🐐', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 5, name: 'Neymar Jr FC', emoji: '🌟', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 6, name: 'Mbappe Speed', emoji: '⚡', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 7, name: 'Haaland Power', emoji: '💪', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 8, name: 'KDB Masters', emoji: '🎯', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 9, name: 'Vinicius Jr FC', emoji: '🔥', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 10, name: 'Bellingham Stars', emoji: '⭐', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 11, name: 'Saka Eagles', emoji: '🦅', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 12, name: 'Foden City', emoji: '🏙️', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 13, name: 'Musiala Magic', emoji: '✨', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 14, name: 'Pedri Dream', emoji: '💫', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 15, name: 'Gavi Warriors', emoji: '⚔️', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 16, name: 'Osimhen Kings', emoji: '👑', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 17, name: 'Salah FC', emoji: '🔴', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 18, name: 'Son Spurs', emoji: '⚪', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 19, name: 'Lewandowski FC', emoji: '🎯', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 },
+    { id: 20, name: 'Benzema Stars', emoji: '⭐', p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+];
+
+// ============================================
+// LOAD TEAMS FROM FIRESTORE
+// ============================================
+async function loadTeams() {
+    try {
+        const snapshot = await db.collection('efl_teams').orderBy('name', 'asc').get();
+        if (!snapshot.empty) {
+            teams = [];
+            snapshot.forEach(doc => {
+                teams.push({ id: doc.id, ...doc.data() });
+            });
+        } else {
+            teams = [...defaultTeams];
+            for (const team of teams) {
+                await db.collection('efl_teams').add({
+                    name: team.name,
+                    emoji: team.emoji,
+                    p: team.p || 0,
+                    w: team.w || 0,
+                    d: team.d || 0,
+                    l: team.l || 0,
+                    gf: team.gf || 0,
+                    ga: team.ga || 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        }
+        renderTable();
+        renderAdminList();
+    } catch (error) {
+        console.error('Error loading teams:', error);
+        teams = [...defaultTeams];
+        renderTable();
+        renderAdminList();
+    }
+}
+
+// ============================================
+// RENDER TABLE
+// ============================================
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    
+    // Calculate points and GD
+    const sorted = [...teams].map(team => ({
+        ...team,
+        pts: (team.w || 0) * 3 + (team.d || 0),
+        gd: (team.gf || 0) - (team.ga || 0),
+        p: (team.w || 0) + (team.d || 0) + (team.l || 0)
+    }));
+    
+    sorted.sort((a, b) => b.pts - a.pts || b.gd - a.gd);
+    
+    if (sorted.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px; color:var(--text-muted);">No teams available</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = sorted.map((team, index) => {
+        const pos = index + 1;
+        let posClass = '';
+        if (pos === 1) posClass = 'top1';
+        else if (pos === 2) posClass = 'top2';
+        else if (pos === 3) posClass = 'top3';
+        
+        return `
+            <tr class="${posClass}">
+                <td>${pos}</td>
+                <td>${team.emoji || '⚽'} ${team.name || 'Team'}</td>
+                <td>${team.p || 0}</td>
+                <td>${team.w || 0}</td>
+                <td>${team.d || 0}</td>
+                <td>${team.l || 0}</td>
+                <td>${team.gf || 0}</td>
+                <td>${team.ga || 0}</td>
+                <td>${team.gd || 0}</td>
+                <td class="points">${team.pts || 0}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ============================================
+// RENDER ADMIN LIST
+// ============================================
+function renderAdminList() {
+    const list = document.getElementById('adminList');
+    if (teams.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-muted);">No teams added yet</p>`;
+        return;
+    }
+    
+    list.innerHTML = teams.map(team => `
+        <div class="admin-item">
+            <div class="item-info">
+                <span class="team">${team.emoji || '⚽'} ${team.name || 'Team'}</span>
+                <span class="stats">P: ${team.p || 0} | W: ${team.w || 0} | D: ${team.d || 0} | L: ${team.l || 0}</span>
+                <span class="stats">GF: ${team.gf || 0} | GA: ${team.ga || 0}</span>
+            </div>
+            <div class="item-actions">
+                <button class="edit-btn" onclick="editTeam('${team.id}')">✏️ Edit</button>
+                <button class="delete-btn" onclick="deleteTeam('${team.id}')">🗑️ Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// ADMIN FUNCTIONS
+// ============================================
+let adminPassword = '5050';
+let adminVisible = false;
+
+function toggleAdmin() {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    
+    const panel = document.getElementById('adminPanel');
+    if (!adminVisible) {
+        const pwd = prompt('🔑 Enter Admin Password:');
+        if (pwd === adminPassword) {
+            adminVisible = true;
+            panel.classList.add('visible');
+            panel.scrollIntoView({ behavior: 'smooth' });
+        } else if (pwd !== null) {
+            alert('❌ Incorrect password!');
+        }
+    } else {
+        adminVisible = false;
+        panel.classList.remove('visible');
+    }
+}
+
+function clearAdminForm() {
+    document.getElementById('teamName').value = '';
+    document.getElementById('teamEmoji').value = '';
+    document.getElementById('teamP').value = '0';
+    document.getElementById('teamW').value = '0';
+    document.getElementById('teamD').value = '0';
+    document.getElementById('teamL').value = '0';
+    document.getElementById('teamGF').value = '0';
+    document.getElementById('teamGA').value = '0';
+    document.getElementById('editTeamId').value = '';
+    document.querySelector('.admin-form .btn').textContent = '⚽ Add Team';
+}
+
+async function saveTeam() {
+    const name = document.getElementById('teamName').value.trim();
+    const emoji = document.getElementById('teamEmoji').value.trim() || '⚽';
+    const p = parseInt(document.getElementById('teamP').value) || 0;
+    const w = parseInt(document.getElementById('teamW').value) || 0;
+    const d = parseInt(document.getElementById('teamD').value) || 0;
+    const l = parseInt(document.getElementById('teamL').value) || 0;
+    const gf = parseInt(document.getElementById('teamGF').value) || 0;
+    const ga = parseInt(document.getElementById('teamGA').value) || 0;
+    const editId = document.getElementById('editTeamId').value;
+    
+    if (!name) {
+        alert('Please enter team name!');
+        return;
+    }
+    
+    try {
+        if (editId) {
+            await db.collection('efl_teams').doc(editId).update({
+                name, emoji, p, w, d, l, gf, ga,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('✅ Team updated!');
+        } else {
+            await db.collection('efl_teams').add({
+                name, emoji, p, w, d, l, gf, ga,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('✅ Team added!');
+        }
+        clearAdminForm();
+        loadTeams();
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function editTeam(id) {
+    const team = teams.find(t => t.id === id);
+    if (!team) return;
+    
+    document.getElementById('teamName').value = team.name || '';
+    document.getElementById('teamEmoji').value = team.emoji || '⚽';
+    document.getElementById('teamP').value = team.p || 0;
+    document.getElementById('teamW').value = team.w || 0;
+    document.getElementById('teamD').value = team.d || 0;
+    document.getElementById('teamL').value = team.l || 0;
+    document.getElementById('teamGF').value = team.gf || 0;
+    document.getElementById('teamGA').value = team.ga || 0;
+    document.getElementById('editTeamId').value = id;
+    document.querySelector('.admin-form .btn').textContent = '✏️ Update Team';
+    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteTeam(id) {
+    if (!confirm('Are you sure you want to delete this team?')) return;
+    
+    try {
+        await db.collection('efl_teams').doc(id).delete();
+        alert('🗑️ Team deleted!');
+        loadTeams();
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// ============================================
+// AUTH STATE LISTENER
+// ============================================
+const loginScreen = document.getElementById('loginScreen');
+const appContent = document.getElementById('appContent');
+
+auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    if (user) {
+        loginScreen.style.display = 'none';
+        appContent.classList.add('visible');
+        document.getElementById('userAvatar').textContent = (user.displayName || 'U')[0].toUpperCase();
+        loadTeams();
+    } else {
+        loginScreen.style.display = 'flex';
+        appContent.classList.remove('visible');
+        document.getElementById('adminPanel').classList.remove('visible');
+        adminVisible = false;
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('adminPanel').classList.contains('visible')) {
+            toggleAdmin();
+        }
+    }
+});
+
+console.log('⚽ DVARY EFL - Efootball League Loaded!');
+console.log('👑 Admin Password: 5050');
+console.log('🏆 20 Teams in the league');
+</script>
+</body>
+      </html>
