@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 DVARY PAY - Azam Pay</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --bg-card: rgba(255,255,255,0.04);
+            --text-primary: #ffffff;
+            --text-secondary: #aaaacc;
+            --text-muted: #666688;
+            --border-color: rgba(255,255,255,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --gradient-1: #0052cc;
+            --gradient-2: #003d99;
+            --gradient-3: #ff6b35;
+            --accent: #0052cc;
+            --accent-glow: rgba(0,82,204,0.2);
+            --input-bg: rgba(255,255,255,0.05);
+            --azam: #0052cc;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #f0f2f8;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0,0,0,0.03);
+            --text-primary: #1a1a2e;
+            --text-secondary: #444466;
+            --text-muted: #8888aa;
+            --border-color: rgba(0,0,0,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.08);
+            --input-bg: #f0f2f8;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--gradient-1); border-radius: 10px; }
+        
+        /* ===== NAVBAR ===== */
+        .navbar {
+            max-width: 600px;
+            margin: 0 auto 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .navbar .brand {
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .navbar .brand i { margin-right: 6px; }
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .navbar .user-info .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            color: var(--gradient-1);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .navbar .user-info .logout-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .navbar .user-info .logout-btn:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        /* ===== CONTAINER ===== */
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen { display: block; }
+        #loginScreen.hidden { display: none; }
+        
+        .login-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 35px 30px;
+            box-shadow: var(--shadow);
+        }
+        .login-box .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .login-box .logo .icon { font-size: 50px; display: block; }
+        .login-box .logo h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-box .logo p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+        
+        .login-box .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--input-bg);
+            border-radius: 14px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+        }
+        .login-box .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .login-box .tab-btn.active {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        .login-box .tab-btn:hover:not(.active) { color: var(--text-primary); }
+        
+        .login-box .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .login-box .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .login-box .form-group { margin-bottom: 14px; }
+        .login-box .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .login-box .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .login-box .form-group input:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        .login-box .btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .login-box .btn-primary {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+        }
+        .login-box .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
+        .login-box .btn-google {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            margin-top: 8px;
+        }
+        .login-box .btn-google:hover { border-color: var(--gradient-1); transform: translateY(-2px); }
+        .login-box .btn-google svg { width: 18px; height: 18px; margin-right: 10px; }
+        
+        .login-box .divider {
+            display: flex;
+            align-items: center;
+            margin: 18px 0;
+        }
+        .login-box .divider::before, .login-box .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .login-box .divider-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 0 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .login-box .message {
+            display: none;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .login-box .message.active { display: block; }
+        .login-box .message.error {
+            background: rgba(220,53,69,0.1);
+            border: 1px solid rgba(220,53,69,0.15);
+            color: #dc3545;
+        }
+        .login-box .message.success {
+            background: rgba(0,82,204,0.1);
+            border: 1px solid rgba(0,82,204,0.15);
+            color: #0052cc;
+        }
+        .login-box .message.info {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.15);
+            color: #ffd700;
+        }
+        
+        .login-box .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .login-box .loading.active { display: block; }
+        .login-box .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--gradient-1);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .wa-banner {
+            display: block;
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+        }
+        .wa-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.3); }
+        .wa-banner i { font-size: 18px; margin-right: 8px; }
+        .wa-banner h3 { font-size: 13px; letter-spacing: 1px; }
+        .wa-banner p { font-size: 10px; opacity: 0.9; margin-top: 2px; }
+        
+        /* ===== DASHBOARD ===== */
+        #dashboard { display: none; }
+        #dashboard.visible { display: block; }
+        
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .balance-card .label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .balance-card .amount {
+            font-size: 42px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            margin: 5px 0;
+        }
+        .balance-card .sub {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        /* Payment Section - Azam Pay Style */
+        .payment-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .payment-section h2 {
+            color: var(--text-primary);
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+        .payment-section h2 i { color: var(--gradient-1); margin-right: 8px; }
+        
+        .payment-section .form-group { margin-bottom: 12px; }
+        .payment-section .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .payment-section .form-group input, .payment-section .form-group select {
+            width: 100%;
+            padding: 11px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .payment-section .form-group input:focus, .payment-section .form-group select:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        .payment-section .form-group select option { background: var(--bg-secondary); color: var(--text-primary); }
+        
+        .payment-section .btn-pay {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .payment-section .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
+        .payment-section .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .azam-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: rgba(0,82,204,0.1);
+            color: #0052cc;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        /* Transactions */
+        .trans-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .trans-section h2 {
+            color: var(--text-primary);
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+        .trans-section h2 i { color: var(--gradient-1); margin-right: 8px; }
+        
+        .trans-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .trans-item:last-child { border-bottom: none; }
+        .trans-item .info .amount { font-weight: 700; color: var(--gradient-1); }
+        .trans-item .info .desc { font-size: 12px; color: var(--text-muted); }
+        .trans-item .status {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .trans-item .status.completed { background: rgba(0,82,204,0.15); color: #0052cc; }
+        .trans-item .status.pending { background: rgba(255,215,0,0.15); color: #ffd700; }
+        
+        .no-trans {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .no-trans i { font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.3; }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .login-box { padding: 25px 18px; }
+            .balance-card .amount { font-size: 34px; }
+            .navbar .brand { font-size: 16px; }
+            .payment-section { padding: 16px; }
+            .trans-section { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==========================================
+NAVBAR
+========================================== -->
+<nav class="navbar" id="navbar">
+    <div class="brand"><i class="fas fa-credit-card"></i> DVARY PAY</div>
+    <div class="user-info" id="userInfo">
+        <span class="badge" id="userBadge">🔑 Login</span>
+        <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">🚪 Logout</button>
+    </div>
+</nav>
+
+<!-- ==========================================
+LOGIN SCREEN
+========================================== -->
+<div class="container" id="loginScreen">
+    <div class="login-box">
+        <div class="logo">
+            <span class="icon">💳</span>
+            <h1>DVARY PAY</h1>
+            <p>Azam Pay • Tanzania • Secure</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">🔑 Login</button>
+            <button class="tab-btn" data-tab="signup">📝 Sign Up</button>
+        </div>
+        
+        <!-- Login -->
+        <div id="loginForm" class="tab-content active">
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">🔑 Login</button>
+            </form>
+        </div>
+        
+        <!-- Signup -->
+        <div id="signupForm" class="tab-content">
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label>👤 Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="signupEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="Min 6 chars" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>✅ Confirm</label>
+                    <input type="password" id="signupConfirm" placeholder="Confirm password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">📝 Sign Up</button>
+            </form>
+        </div>
+        
+        <div class="divider"><span class="divider-text">Or</span></div>
+        
+        <button id="googleBtn" class="btn btn-google">
+            <svg viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Sign in with Google
+        </button>
+        
+        <div id="loginLoading" class="loading"><span class="spinner"></span> Loading...</div>
+        <div id="loginMessage" class="message"></div>
+        
+        <a href="https://whatsapp.com/channel/0029VbCRC9b5fM5cruU8PF2M" target="_blank" class="wa-banner">
+            <i class="fab fa-whatsapp"></i>
+            <h3>📱 Join Our WhatsApp Channel</h3>
+            <p>Get updates, support & more!</p>
+        </a>
+    </div>
+</div>
+
+<!-- ==========================================
+DASHBOARD (Baada ya Login)
+========================================== -->
+<div class="container" id="dashboard">
+    
+    <!-- Balance -->
+    <div class="balance-card">
+        <span class="label">💰 YOUR BALANCE</span>
+        <span class="amount" id="balanceDisplay">TSh 0</span>
+        <span class="sub">Tanzania Shillings</span>
+    </div>
+    
+    <!-- Payment - Azam Pay -->
+    <div class="payment-section">
+        <h2><i class="fas fa-credit-card"></i> Deposit with Azam Pay</h2>
+        
+        <div class="form-group">
+            <label>💰 Amount (TSh)</label>
+            <input type="number" id="depositAmount" placeholder="5000" min="100" step="100">
+        </div>
+        <div class="form-group">
+            <label>📱 Azam Pay Phone Number</label>
+            <input type="text" id="depositPhone" placeholder="+255 712 345 678">
+        </div>
+        <div class="form-group">
+            <label>📧 Email</label>
+            <input type="email" id="depositEmail" placeholder="your@email.com">
+        </div>
+        
+        <div style="text-align:center; margin-bottom:10px;">
+            <span class="azam-badge"><i class="fas fa-check-circle"></i> Secured by Azam Pay</span>
+        </div>
+        
+        <button class="btn-pay" id="payBtn" onclick="makePayment()">
+            <i class="fas fa-lock"></i> Pay with Azam Pay
+        </button>
+        
+        <div id="payMessage" style="margin-top: 12px;"></div>
+    </div>
+    
+    <!-- Transactions -->
+    <div class="trans-section">
+        <h2><i class="fas fa-history"></i> Transactions</h2>
+        <div id="transactionsList">
+            <div class="no-trans">
+                <i class="fas fa-inbox"></i>
+                <p>No transactions yet</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIG
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAHNhUyFC7PlZGijkmYUnEc1GlEYJGHI40",
+    authDomain: "manyama2006-50664.firebaseapp.com",
+    projectId: "manyama2006-50664",
+    storageBucket: "manyama2006-50664.firebasestorage.app",
+    messagingSenderId: "749612577601",
+    appId: "1:749612577601:web:53295431132ddff30027c0",
+    measurementId: "G-9E858GX9HB"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ============================================
+// AZAM PAY - SIMULATION (Sandbox)
+// ============================================
+// Kwa sasa Azam Pay Sandbox inahitaji kuunganishwa
+// Hii ni simulation ya malipo kwa Azam Pay
+
+// ============================================
+// STATE
+// ============================================
+let currentUser = null;
+
+// ============================================
+// DOM REFS
+// ============================================
+const loginScreen = document.getElementById('loginScreen');
+const dashboard = document.getElementById('dashboard');
+const userBadge = document.getElementById('userBadge');
+const logoutBtn = document.getElementById('logoutBtn');
+const balanceDisplay = document.getElementById('balanceDisplay');
+const transactionsList = document.getElementById('transactionsList');
+const payMessage = document.getElementById('payMessage');
+
+// ============================================
+// LOGIN FUNCTIONS
+// ============================================
+function showLoginMessage(text, type = 'info') {
+    const el = document.getElementById('loginMessage');
+    el.textContent = text;
+    el.className = 'message active ' + type;
+    setTimeout(() => el.classList.remove('active'), 5000);
+}
+
+function showLoginLoading(show) {
+    document.getElementById('loginLoading').classList.toggle('active', show);
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(tab + 'Form').classList.add('active');
+        document.getElementById('loginMessage').classList.remove('active');
+    });
+});
+
+// Signup
+document.getElementById('signupFormElement').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm = document.getElementById('signupConfirm').value;
+    
+    if (!name || !email || !password || !confirm) {
+        showLoginMessage('Please fill all fields', 'error');
+        return;
+    }
+    if (password !== confirm) {
+        showLoginMessage('Passwords do not match!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showLoginMessage('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    showLoginLoading(true);
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: name });
+        await db.collection('users').doc(result.user.uid).set({
+            name: name,
+            email: email,
+            balance: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showLoginMessage('✅ Account created! Welcome ' + name + '!', 'success');
+        document.getElementById('signupFormElement').reset();
+        document.querySelector('.tab-btn[data-tab="login"]').click();
+    } catch (error) {
+        let msg = error.message;
+        if (error.code === 'auth/email-already-in-use') msg = 'Email already in use.';
+        showLoginMessage('❌ ' + msg, 'error');
+    }
+    showLoginLoading(false);
+});
+
+// Login
+document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        showLoginMessage('Please fill email and password', 'error');
+        return;
+    }
+    
+    showLoginLoading(true);
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        showLoginMessage('✅ Login successful!', 'success');
+        document.getElementById('loginFormElement').reset();
+    } catch (error) {
+        let msg = error.message;
+        if (error.code === 'auth/user-not-found') msg = 'Account not found. Please sign up.';
+        if (error.code === 'auth/wrong-password') msg = 'Incorrect password.';
+        if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+        showLoginMessage('❌ ' + msg, 'error');
+    }
+    showLoginLoading(false);
+});
+
+// Google Login
+document.getElementById('googleBtn').addEventListener('click', async () => {
+    showLoginLoading(true);
+    try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const doc = await db.collection('users').doc(result.user.uid).get();
+        if (!doc.exists) {
+            await db.collection('users').doc(result.user.uid).set({
+                name: result.user.displayName || 'User',
+                email: result.user.email,
+                balance: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        showLoginMessage('✅ Login with Google successful!', 'success');
+    } catch (error) {
+        if (error.code === 'auth/popup-blocked') {
+            showLoginMessage('⚠️ Please allow popups for this site.', 'error');
+        } else if (error.code !== 'auth/cancelled-popup-request') {
+            showLoginMessage('❌ ' + error.message, 'error');
+        }
+    }
+    showLoginLoading(false);
+});
+
+function logout() {
+    auth.signOut();
+}
+
+// ============================================
+// UPDATE UI
+// ============================================
+async function updateUI(user) {
+    if (user) {
+        currentUser = user;
+        loginScreen.classList.add('hidden');
+        dashboard.classList.add('visible');
+        userBadge.textContent = '👤 ' + (user.displayName || user.email);
+        logoutBtn.style.display = 'inline-block';
+        await loadBalance();
+        await loadTransactions();
+    } else {
+        currentUser = null;
+        loginScreen.classList.remove('hidden');
+        dashboard.classList.remove('visible');
+        userBadge.textContent = '🔑 Login';
+        logoutBtn.style.display = 'none';
+    }
+}
+
+// ============================================
+// LOAD BALANCE
+// ============================================
+async function loadBalance() {
+    if (!currentUser) return;
+    try {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists) {
+            const balance = doc.data().balance || 0;
+            balanceDisplay.textContent = 'TSh ' + balance.toLocaleString();
+        }
+    } catch (error) {
+        console.error('Error loading balance:', error);
+    }
+}
+
+// ============================================
+// LOAD TRANSACTIONS
+// ============================================
+async function loadTransactions() {
+    if (!currentUser) return;
+    try {
+        const snapshot = await db.collection('transactions')
+            .where('userId', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .get();
+        
+        if (snapshot.empty) {
+            transactionsList.innerHTML = `
+                <div class="no-trans">
+                    <i class="fas fa-inbox"></i>
+                    <p>No transactions yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const statusClass = data.status === 'completed' ? 'completed' : 'pending';
+            const statusLabel = data.status === 'completed' ? '✅ Completed' : '⏳ Pending';
+            const date = data.createdAt ? 
+                new Date(data.createdAt.seconds * 1000).toLocaleDateString() : '...';
+            
+            html += `
+                <div class="trans-item">
+                    <div class="info">
+                        <div class="amount">+ TSh ${data.amount || 0}</div>
+                        <div class="desc">${data.description || 'Payment'} • ${date}</div>
+                    </div>
+                    <span class="status ${statusClass}">${statusLabel}</span>
+                </div>
+            `;
+        });
+        transactionsList.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+    }
+}
+
+// ============================================
+// UPDATE BALANCE
+// ============================================
+async function updateBalance(amount) {
+    if (!currentUser) return;
+    try {
+        await db.collection('users').doc(currentUser.uid).update({
+            balance: firebase.firestore.FieldValue.increment(amount)
+        });
+        await loadBalance();
+    } catch (error) {
+        console.error('Error updating balance:', error);
+    }
+}
+
+// ============================================
+// MAKE PAYMENT - AZAM PAY (Simulation)
+// ============================================
+async function makePayment() {
+    if (!currentUser) {
+        showPayMessage('⚠️ Please login first!', 'error');
+        return;
+    }
+    
+    const amount = parseInt(document.getElementById('depositAmount').value);
+    const phone = document.getElementById('depositPhone').value.trim();
+    const email = document.getElementById('depositEmail').value.trim() || currentUser.email;
+    
+    if (!amount || amount < 100) {
+        showPayMessage('⚠️ Enter valid amount (min 100 TSh)', 'error');
+        return;
+    }
+    if (!phone) {
+        showPayMessage('⚠️ Enter your Azam Pay phone number', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    showPayMessage('⏳ Connecting to Azam Pay...', 'info');
+    
+    try {
+        // ============================================
+        // AZAM PAY SANDBOX INTEGRATION
+        // ============================================
+        // Kwa sasa tunatumia simulation
+        // Ili kuunganisha Azam Pay halisi, unahitaji:
+        // 1. Akaunti ya Azam Pay Merchant
+        // 2. API Credentials kutoka Azam
+        // 3. Kuweka API endpoints sahihi
+        
+        // Simulation ya malipo
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Ongeza salio
+        await updateBalance(amount);
+        
+        // Save transaction
+        await db.collection('transactions').add({
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            amount: amount,
+            description: 'Deposit via Azam Pay',
+            status: 'completed',
+            phone: phone,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await loadTransactions();
+        showPayMessage('✅ Payment successful! TSh ' + amount.toLocaleString() + ' added to your balance!', 'success');
+        document.getElementById('depositAmount').value = '';
+        document.getElementById('depositPhone').value = '';
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        showPayMessage('❌ ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock"></i> Pay with Azam Pay';
+    }
+}
+
+// ============================================
+// SHOW PAY MESSAGE
+// ============================================
+function showPayMessage(text, type = 'info') {
+    payMessage.innerHTML = `<div class="message active ${type}" style="display:block; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:500; background:${type === 'success' ? 'rgba(0,82,204,0.1)' : type === 'error' ? 'rgba(220,53,69,0.1)' : 'rgba(255,215,0,0.1)'}; border:1px solid ${type === 'success' ? 'rgba(0,82,204,0.2)' : type === 'error' ? 'rgba(220,53,69,0.15)' : 'rgba(255,215,0,0.15)'}; color:${type === 'success' ? '#0052cc' : type === 'error' ? '#dc3545' : '#ffd700'};">${text}</div>`;
+    setTimeout(() => { payMessage.innerHTML = ''; }, 6000);
+}
+
+// ============================================
+// SIMULATE PAYMENT (Quick Test)
+// ============================================
+window.simulatePayment = async function(amount) {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    await updateBalance(amount);
+    await db.collection('transactions').add({
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        amount: amount,
+        description: 'Test Payment (Simulated)',
+        status: 'completed',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await loadTransactions();
+    showPayMessage('✅ Test payment: TSh ' + amount.toLocaleString() + ' added!', 'success');
+};
+
+// ============================================
+// AUTH STATE LISTENER
+// ============================================
+auth.onAuthStateChanged((user) => {
+    updateUI(user);
+});
+
+console.log('💳 DVARY PAY - Azam Pay System Loaded!');
+console.log('📞 Azam Pay Sandbox - Simulation Mode');
+console.log('💰 Balance updates automatically after payment!');
+console.log('💡 Test: simulatePayment(5000) to add test balance');
+</script>
+</body>
+</html>
