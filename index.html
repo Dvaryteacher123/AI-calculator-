@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 DVARY PAY - AzamPay Sandbox</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111828;
+            --bg-card: rgba(255,255,255,0.03);
+            --text-primary: #ffffff;
+            --text-secondary: #8899bb;
+            --text-muted: #556688;
+            --border-color: rgba(255,255,255,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --gradient-1: #0052cc;
+            --gradient-2: #003d99;
+            --gradient-3: #ff6b35;
+            --accent: #0052cc;
+            --accent-glow: rgba(0,82,204,0.2);
+            --input-bg: rgba(255,255,255,0.05);
+            --success: #00ff88;
+            --pending: #ffd700;
+            --failed: #ff4444;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #f0f2f8;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0,0,0,0.02);
+            --text-primary: #1a1a2e;
+            --text-secondary: #444466;
+            --text-muted: #8888aa;
+            --border-color: rgba(0,0,0,0.06);
+            --shadow: 0 20px 60px rgba(0,0,0,0.08);
+            --input-bg: #f0f2f8;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--gradient-1); border-radius: 10px; }
+        
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            padding: 25px 20px 15px;
+        }
+        .header .icon { font-size: 50px; display: block; }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+        .header .sandbox-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: rgba(255,215,0,0.15);
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        
+        /* ===== BALANCE ===== */
+        .balance-card {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .balance-card .label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .balance-card .amount {
+            font-size: 38px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            margin: 5px 0;
+        }
+        .balance-card .sub {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        /* ===== PLANS ===== */
+        .plans-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .plan-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .plan-card:hover {
+            border-color: var(--gradient-1);
+            transform: translateY(-2px);
+        }
+        .plan-card.selected {
+            border-color: var(--gradient-1);
+            background: var(--accent-glow);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        .plan-card .icon { font-size: 24px; display: block; }
+        .plan-card .name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .plan-card .price { font-size: 16px; font-weight: 900; color: var(--gradient-1); }
+        .plan-card .desc { font-size: 10px; color: var(--text-muted); }
+        
+        /* ===== PAYMENT FORM ===== */
+        .payment-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .payment-section h2 {
+            color: var(--text-primary);
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+        .payment-section h2 i { color: var(--gradient-1); margin-right: 8px; }
+        
+        .payment-section .form-group { margin-bottom: 12px; }
+        .payment-section .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .payment-section .form-group input, 
+        .payment-section .form-group select {
+            width: 100%;
+            padding: 11px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .payment-section .form-group input:focus, 
+        .payment-section .form-group select:focus {
+            border-color: var(--gradient-1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        .payment-section .form-group select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .payment-section .provider-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 6px 12px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            display: none;
+        }
+        .payment-section .provider-hint.visible { display: block; }
+        
+        .payment-section .btn-pay {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .payment-section .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        .payment-section .btn-pay:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .payment-section .provider-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            margin: 2px 4px;
+        }
+        .provider-badge.mpesa { background: rgba(0,82,204,0.15); color: #0052cc; }
+        .provider-badge.airtel { background: rgba(255,107,53,0.15); color: #ff6b35; }
+        .provider-badge.tigo { background: rgba(0,168,107,0.15); color: #00a86b; }
+        .provider-badge.visa { background: rgba(255,215,0,0.15); color: #ffd700; }
+        .provider-badge.mastercard { background: rgba(255,68,68,0.15); color: #ff4444; }
+        
+        /* ===== TRANSACTIONS ===== */
+        .trans-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .trans-section h2 {
+            color: var(--text-primary);
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+        .trans-section h2 i { color: var(--gradient-1); margin-right: 8px; }
+        
+        .trans-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .trans-item:last-child { border-bottom: none; }
+        .trans-item .info .amount { font-weight: 700; color: var(--gradient-1); }
+        .trans-item .info .desc { font-size: 12px; color: var(--text-muted); }
+        .trans-item .info .provider { font-size: 11px; color: var(--text-muted); }
+        .trans-item .status {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .trans-item .status.completed { background: rgba(0,255,136,0.15); color: var(--success); }
+        .trans-item .status.pending { background: rgba(255,215,0,0.15); color: var(--pending); }
+        .trans-item .status.failed { background: rgba(255,68,68,0.15); color: var(--failed); }
+        
+        .no-trans {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .no-trans i { font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.3; }
+        
+        /* ===== WHATSAPP BANNER ===== */
+        .wa-banner {
+            display: block;
+            margin: 16px 0;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 16px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .wa-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.3); }
+        .wa-banner i { font-size: 22px; margin-right: 10px; }
+        .wa-banner h3 { font-size: 15px; letter-spacing: 1px; }
+        .wa-banner p { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+        
+        /* ===== MESSAGE ===== */
+        .msg {
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+        }
+        .msg.visible { display: block; }
+        .msg.success { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.15); color: var(--success); }
+        .msg.error { background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.15); color: var(--failed); }
+        .msg.info { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.15); color: var(--pending); }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 20px 10px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 20px;
+        }
+        .footer .owner { color: var(--gradient-1); font-weight: 600; }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .plans-section { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .plan-card { padding: 10px 8px; }
+            .plan-card .price { font-size: 14px; }
+            .balance-card .amount { font-size: 30px; }
+            .header h1 { font-size: 24px; }
+            .payment-section { padding: 16px; }
+            .trans-section { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <span class="icon">💳</span>
+        <h1>DVARY PAY</h1>
+        <p>AzamPay • Tanzania • Sandbox</p>
+        <span class="sandbox-badge">🧪 SANDBOX MODE</span>
+    </div>
+
+    <!-- ===== BALANCE ===== -->
+    <div class="balance-card">
+        <span class="label">💰 SALIO LAKO</span>
+        <span class="amount" id="balanceDisplay">TSh 0</span>
+        <span class="sub">Tanzania Shillings</span>
+    </div>
+
+    <!-- ===== PLANS ===== -->
+    <div class="plans-section" id="plansSection">
+        <div class="plan-card" data-amount="5000" onclick="selectPlan(this)">
+            <span class="icon">🌱</span>
+            <div class="name">Starter</div>
+            <div class="price">TSh 5,000</div>
+            <div class="desc">Anza na kiasi kidogo</div>
+        </div>
+        <div class="plan-card" data-amount="15000" onclick="selectPlan(this)">
+            <span class="icon">🔥</span>
+            <div class="name">Popular</div>
+            <div class="price">TSh 15,000</div>
+            <div class="desc">Wengi wanachagua hii</div>
+        </div>
+        <div class="plan-card" data-amount="40000" onclick="selectPlan(this)">
+            <span class="icon">⭐</span>
+            <div class="name">Pro</div>
+            <div class="price">TSh 40,000</div>
+            <div class="desc">Thamani bora</div>
+        </div>
+        <div class="plan-card" data-amount="100000" onclick="selectPlan(this)">
+            <span class="icon">👑</span>
+            <div class="name">VIP</div>
+            <div class="price">TSh 100,000</div>
+            <div class="desc">Ukuaji wa haraka</div>
+        </div>
+    </div>
+
+    <!-- ===== PAYMENT FORM ===== -->
+    <div class="payment-section">
+        <h2><i class="fas fa-credit-card"></i> Malipo</h2>
+        
+        <div class="form-group">
+            <label>💰 Kiasi (TSh)</label>
+            <input type="number" id="payAmount" placeholder="5000" min="100" step="100">
+        </div>
+        
+        <div class="form-group">
+            <label>🏦 Chagua Njia ya Malipo</label>
+            <select id="payProvider" onchange="updateProviderHint()">
+                <option value="Airtel">📱 Airtel Money</option>
+                <option value="Mpesa">📱 M-Pesa</option>
+                <option value="Tigo">📱 Tigo Pesa</option>
+                <option value="Visa">💳 Visa Card</option>
+                <option value="Mastercard">💳 Mastercard</option>
+            </select>
+            <div style="margin-top: 6px;">
+                <span class="provider-badge airtel">Airtel</span>
+                <span class="provider-badge mpesa">M-Pesa</span>
+                <span class="provider-badge tigo">Tigo</span>
+                <span class="provider-badge visa">Visa</span>
+                <span class="provider-badge mastercard">Mastercard</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label id="numberLabel">📱 Namba ya Simu / Kadi</label>
+            <input type="text" id="payNumber" placeholder="+255 712 345 678">
+            <div class="provider-hint" id="providerHint">
+                <i class="fas fa-info-circle"></i> 
+                <span id="hintText">Weka namba yako ya Airtel Money</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>📧 Barua Pepe (Hiari)</label>
+            <input type="email" id="payEmail" placeholder="your@email.com">
+        </div>
+        
+        <button class="btn-pay" id="payBtn" onclick="makePayment()">
+            <i class="fas fa-lock"></i> Lipa kwa AzamPay
+        </button>
+        
+        <div id="payMsg" class="msg"></div>
+    </div>
+
+    <!-- ===== WHATSAPP CHANNEL ===== -->
+    <a href="https://whatsapp.com/channel/0029VbCRC9b5fM5cruU8PF2M" target="_blank" class="wa-banner">
+        <i class="fab fa-whatsapp"></i>
+        <h3>📱 Jiunge na WhatsApp Channel</h3>
+        <p>Pata updates na msaada!</p>
+    </a>
+
+    <!-- ===== TRANSACTIONS ===== -->
+    <div class="trans-section">
+        <h2><i class="fas fa-history"></i> Historia ya Malipo</h2>
+        <div id="transactionsList">
+            <div class="no-trans">
+                <i class="fas fa-inbox"></i>
+                <p>Hakuna malipo bado</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+        <p>© 2026 <span class="owner">DVARY DEVELOPER</span> • AzamPay Sandbox</p>
+        <p style="font-size:10px; margin-top:4px; color:var(--text-muted);">🧪 Hii ni mazingira ya majaribio • Hakuna pesa halisi</p>
+    </div>
+</div>
+
+<script>
+// ============================================
+// AZAM PAY SANDBOX CREDENTIALS
+// ============================================
+const AZAMPAY_CONFIG = {
+    clientId: '979e7abf-1a5d-493a-8fc9-7ca7bd63ff6a',
+    clientSecret: 'YOUR_CLIENT_SECRET_HERE', // Weka client secret yako
+    apiKey: '1c8f0c13-c7b5-4eac-aa43-b373da9e2b79',
+    baseUrl: 'https://sandbox.azampay.co.tz'
+};
+
+// ============================================
+// PROVIDER HINTS
+// ============================================
+const providerHints = {
+    'Airtel': 'Weka namba yako ya Airtel Money (eg. 0712345678)',
+    'Mpesa': 'Weka namba yako ya M-Pesa (eg. 0712345678)',
+    'Tigo': 'Weka namba yako ya Tigo Pesa (eg. 0712345678)',
+    'Visa': 'Weka namba ya Visa Card (eg. 4111 1111 1111 1111)',
+    'Mastercard': 'Weka namba ya Mastercard (eg. 5555 5555 5555 4444)'
+};
+
+const numberLabels = {
+    'Airtel': '📱 Namba ya Airtel Money',
+    'Mpesa': '📱 Namba ya M-Pesa',
+    'Tigo': '📱 Namba ya Tigo Pesa',
+    'Visa': '💳 Namba ya Visa Card',
+    'Mastercard': '💳 Namba ya Mastercard'
+};
+
+function updateProviderHint() {
+    const provider = document.getElementById('payProvider').value;
+    const hint = document.getElementById('providerHint');
+    const hintText = document.getElementById('hintText');
+    const numberLabel = document.getElementById('numberLabel');
+    
+    hintText.textContent = providerHints[provider] || 'Weka namba yako';
+    numberLabel.textContent = numberLabels[provider] || '📱 Namba yako';
+    hint.classList.add('visible');
+}
+
+// ============================================
+// SELECT PLAN
+// ============================================
+let selectedPlan = null;
+
+function selectPlan(el) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlan = parseInt(el.dataset.amount);
+    document.getElementById('payAmount').value = selectedPlan;
+}
+
+// ============================================
+// BALANCE - Local Storage
+// ============================================
+function getBalance() {
+    return parseFloat(localStorage.getItem('dvary_azam_balance')) || 0;
+}
+
+function setBalance(amount) {
+    localStorage.setItem('dvary_azam_balance', amount);
+    document.getElementById('balanceDisplay').textContent = 'TSh ' + amount.toLocaleString();
+}
+
+// ============================================
+// TRANSACTIONS - Local Storage
+// ============================================
+function getTransactions() {
+    return JSON.parse(localStorage.getItem('dvary_azam_transactions')) || [];
+}
+
+function saveTransaction(data) {
+    const transactions = getTransactions();
+    transactions.unshift({
+        id: Date.now(),
+        ...data,
+        date: new Date().toISOString()
+    });
+    localStorage.setItem('dvary_azam_transactions', JSON.stringify(transactions));
+    renderTransactions();
+}
+
+function renderTransactions() {
+    const list = document.getElementById('transactionsList');
+    const transactions = getTransactions();
+    
+    if (transactions.length === 0) {
+        list.innerHTML = `
+            <div class="no-trans">
+                <i class="fas fa-inbox"></i>
+                <p>Hakuna malipo bado</p>
+            </div>
+        `;
+        return;
+    }
+    
+    list.innerHTML = transactions.map(t => {
+        const statusClass = t.status === 'completed' ? 'completed' : 
+                           t.status === 'pending' ? 'pending' : 'failed';
+        const statusLabel = t.status === 'completed' ? '✅ Imekamilika' :
+                           t.status === 'pending' ? '⏳ Inasubiri' : '❌ Imefeli';
+        const date = new Date(t.date).toLocaleDateString('sw-TZ', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        return `
+            <div class="trans-item">
+                <div class="info">
+                    <div class="amount">+ TSh ${t.amount.toLocaleString()}</div>
+                    <div class="desc">${t.provider || 'AzamPay'} • ${date}</div>
+                    <div class="provider">${t.number || ''}</div>
+                </div>
+                <span class="status ${statusClass}">${statusLabel}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// SHOW MESSAGE
+// ============================================
+function showMessage(text, type = 'info') {
+    const el = document.getElementById('payMsg');
+    el.textContent = text;
+    el.className = 'msg visible ' + type;
+    setTimeout(() => {
+        el.classList.remove('visible');
+    }, 6000);
+}
+
+// ============================================
+// MAKE PAYMENT - AZAM PAY SANDBOX
+// ============================================
+async function makePayment() {
+    const amount = parseInt(document.getElementById('payAmount').value);
+    const provider = document.getElementById('payProvider').value;
+    const number = document.getElementById('payNumber').value.trim();
+    const email = document.getElementById('payEmail').value.trim() || 'customer@example.com';
+    
+    if (!amount || amount < 100) {
+        showMessage('⚠️ Tafadhali weka kiasi halali (min TSh 100)', 'error');
+        return;
+    }
+    if (!number) {
+        showMessage('⚠️ Tafadhali weka namba yako', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inachakata...';
+    
+    try {
+        // ============================================
+        // AZAM PAY SANDBOX API INTEGRATION
+        // ============================================
+        // Hii ni simulation ya AzamPay Sandbox
+        // Kwa integration halisi, unahitaji backend server
+        
+        // 1. Get Access Token
+        const tokenRes = await fetch(`${AZAMPAY_CONFIG.baseUrl}/api/v1/oauth/token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                client_id: AZAMPAY_CONFIG.clientId,
+                client_secret: AZAMPAY_CONFIG.clientSecret
+            })
+        });
+        const tokenData = await tokenRes.json();
+        const accessToken = tokenData.access_token || 'sandbox_token';
+        
+        // 2. Submit Payment
+        const paymentData = {
+            amount: amount,
+            currency: 'TZS',
+            provider: provider,
+            phone_number: number,
+            email: email,
+            reference: 'ORDER_' + Date.now(),
+            callback_url: window.location.href + '?payment=success'
+        };
+        
+        // Simulate processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Simulate success (90% success rate for demo)
+        const isSuccess = Math.random() < 0.9;
+        
+        if (isSuccess) {
+            // Ongeza salio
+            const current = getBalance();
+            setBalance(current + amount);
+            
+            // Save transaction
+            saveTransaction({
+                amount: amount,
+                number: number,
+                provider: provider,
+                email: email,
+                status: 'completed',
+                orderId: 'ORD_' + Date.now()
+            });
+            
+            showMessage(`✅ Malipo ya TSh ${amount.toLocaleString()} yamekamilika!`, 'success');
+            document.getElementById('payAmount').value = '';
+            document.getElementById('payNumber').value = '';
+            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+        } else {
+            // Save failed transaction
+            saveTransaction({
+                amount: amount,
+                number: number,
+                provider: provider,
+                email: email,
+                status: 'failed'
+            });
+            showMessage('❌ Malipo yamefeli. Jaribu tena.', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        showMessage('❌ Hitilafu: ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock"></i> Lipa kwa AzamPay';
+    }
+}
+
+// ============================================
+// SIMULATE PAYMENT (Test Mode)
+// ============================================
+function simulatePayment(amount) {
+    const current = getBalance();
+    setBalance(current + amount);
+    saveTransaction({
+        amount: amount,
+        number: '+255 712 345 678',
+        provider: 'Simulation',
+        email: 'test@example.com',
+        status: 'completed'
+    });
+    showMessage(`✅ TSh ${amount.toLocaleString()} imeongezwa kwenye salio! (Simulation)`, 'success');
+}
+
+// ============================================
+// INIT
+// ============================================
+updateProviderHint();
+setBalance(getBalance());
+renderTransactions();
+
+console.log('💳 DVARY PAY - AzamPay Sandbox');
+console.log('🔑 Client ID: ' + AZAMPAY_CONFIG.clientId.substring(0, 15) + '...');
+console.log('🔑 API Key: ' + AZAMPAY_CONFIG.apiKey.substring(0, 15) + '...');
+console.log('🧪 Environment: Sandbox');
+console.log('💡 Test: simulatePayment(5000) to add balance');
+console.log('📞 For real AzamPay integration, use a backend server');
+
+// ============================================
+// KEYBOARD SHORTCUT - Enter to pay
+// ============================================
+document.getElementById('payAmount').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        makePayment();
+    }
+});
+</script>
+</body>
+</html>
